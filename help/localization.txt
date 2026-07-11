@@ -1,0 +1,65 @@
+
+ localization.txt
+
+ For anyone who wants to
+ translate the game. Skyland
+ natively supports Unicode,
+ and ships with all of the
+ glyphs required for English,
+ Spanish, French, German,
+ Italian, Russian, Ukrainian,
+ Japanese, and a subset of
+ 2500 of the most common
+ Chinese words.
+
+ To localize the game, choose
+ one of the two following
+ methods:
+
+ 1) Single language ROM (easier)
+ Translate all of the strings
+ in the game's scripts
+ (the files in the strings/
+ directory and the scripts/
+ directory). Then follow the
+ instructions in readme.txt
+ for zipping everything up and
+ building a game ROM. You
+ should be able to do all of
+ this without any help.
+
+ Steps:
+ a) Use unpack_rom.py
+    to unpack files from
+    Skyland.gba
+
+ b) Translate the text
+    as described above.
+
+ c) Run repack.sh
+    to zip everything back
+    up.
+
+ d) Test the translated
+    ROM to make sure that
+    it works.
+
+ The above steps should just
+ require an installation of
+ python3.
+
+
+ 2) Multi-language ROM (harder)
+ Multilanguage roms are a work
+ in progress. To enable a new
+ language, copy/paste an
+ existing language directory,
+ e.g. strings/spanish/,
+ and create translations for
+ everything.
+ You'll also want to create
+ a version of
+ strings/english.idf for your
+ language. Finally, add a
+ mapping for your desired
+ language to /strings/lang.lisp

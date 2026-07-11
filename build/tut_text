@@ -1,0 +1,82 @@
+   "<c:Milo:5>In one of the earlier tutorials about Power Balance, we explained the importance of building enough power to supply all of the systems on your island. <B:0> The Beginner difficulty setting allows you to disable unused blocks, allowing us to reclaim power without salvaging them. <B:0> By opening the SELECT menu on certain blocks, we can deactivate them, allowing us to use the energy for something else instead."
+   "<c:Milo:5>Opening the SELECT menu on individual blocks isn't the only way to regulate power usage. <B:0> By opening the select menu on a power supply, and selecting 'divert power', you can adjust activate and deactivate multiple blocks at once!"
+   "<c:Milo:5>You may have noticed, some the blocks in the 'divert power' menu were labeled with a blue circle icon. These are the blocks that can be deactivated. All blocks in the 'weapons' category of the glossary, and many of the blocks in the 'misc' category, can be deactivated! <B:0> If a block sits unused for a long time, you may want to think about salvaging it instead to use the resources to build something else..."
+   "<c:Milo:5>Hi again, we're just getting prepared for a fight! We've built a pretty strong castle, and I think we can easily win. Let's start by setting up our weapons, as usual:"
+   "<c:Milo:5>In fact, I'm so sure we can win, that I don't want to sit around waiting forever for this fight to finish. Did you know you can speed up or slow down the battle? When tapped, the L button pauses the game. But when held, the L button lets you pick a number of different game speeds. Let's set the game speed to fast mode!"
+   "<c:Milo:5>Err... maybe this isn't going as well as I planned..."
+   "<c:Milo:5>I think we need to slow things down and take a closer look at what's going on. I have an idea... I'll set the game speed to the slow setting!"
+   "<c:Milo:5>Ok, I've let this go on too long... I hate admitting my mistakes, but I've messed up everything! But guess what? You can rewind the battle too! Let's go all the way back to the beginning!"
+   "<c:Milo:5>Alright, I think I've showed you all the different game speeds: slow, regular, fast, paused, and rewind!"
+   "<c:Milo:5> Hi again! Looks like a hostile castle approaches, let's take a quick look and build some defenses!"
+   "<c:Milo:5> We need to build some hull, but looks like we don't have enough resources! Not to worry, we can just salvage some rooms to recover some resources. You can access the salvage menu by hovering over a room and pressing B!"
+    (error (format "failure! expected % not equal %" lhs rhs
+   "<c:Milo:5>So beautiful up here above the clouds! But look, just out there, pirates!"
+   "<c:Milo:5>And look at our castle! Defenseless! They really caught us off guard. Let's pause things with the L button, and size up the situation!"
+   "<c:Milo:5>Looks like our opponent has a weapon, one missile silo! We should build some defenses!"
+   "<c:Milo:5>The R button opens the construction menu, where you can build all sorts of stuff. At the bottom of the screen, you'll see the name and cost of each structure. In the top left, you'll see your current resource count and power usage! <d:1000> Err... <d:1000> they've got missiles, so I guess we should build some hull."
+   "<c:Milo:5>Looks like we took some damage. You can see the health of a block by hovering over it with your cursor."
+   "<c:Milo:5>We should fight back, let's build some weapons of our own!"
+   "<c:Milo:5>Navigate to a weapon, and press A to open the target selection menu."
+   "<c:Milo:5>Those blasted pirates! They've opened up a hole in our hull! We should probably fix that!"
+   "<c:Milo:5>Well, that covers the basics of construction and combat! As your castle grows, you'll want to build a workshop, to enable you to build new weapons, sheilds, and power supplies. If you ever need help with anything else, I'll be in a room labeled 'extras', you know, to the right of the room labelled 'challenges'. Just press the Tutorials button to get my attention!"
+   "<c:Milo:5> Sometimes, you may want to connect disjoint sections of your castle... <B:0> Portals allow you to link areas of your fortress together, allowing your crew to travel quickly between them!"
+   "<c:Milo:5> Just be careful not to let portals catch on fire! Your crewmembers aren't the only thing that can pass through portals..."
+   "<c:Milo:5>Ack! We lost a power-core! That's not good... and did you notice what happened next? Our weapons stopped firing. Looking at the power indicator, I noticed that we are consuming more power than we generate. We need to remove some structures to lower our power usage, unfortunately."
+   "<c:Milo:5>Super! Systems back online. If we had enough resources, we could have instead just built another power core!"
+   "<c:Milo:5>I almost forgot! I promised to explain boarding and combat a while back! We can defend ourselves by building cannons, but we can also create transporters, allowing us to raid other castles!"
+   "<c:Milo:5>First, let's begin by moving our crew into the transporters. Transporters take some time to charge, but once the light on the room changes from red to blue, it's ready to go!"
+   "<c:Milo:5>All aboard! Select the transporters to send our crew into the enemy fortress! Transporters pick a random destination by default, but you can build radars to enable more accurate transporting!"
+   "<c:Milo:5>Alright, we've boarded! Your crew already knows what to do, just tell them where to go! They'll plunder any rooms (except for stairwells for resources, and fight enemy goblins! Transporters can also return characters back to your island, but we have to wait for them to recharge..."
+   "<c:Milo:5>Did you know that you can adjust the firing pattern of weapon groups? I'll begin by attaching our cannons to a group:"
+   "<c:Milo:5>When I select a target, my weapons will fire, by default, as soon as they're reloaded. But in the target selection menu, I can actually change a weapon group's firing pattern by pressing the right shoulder button! One press will select barrage (B mode. A second press will switch the weapon to salvo (S mode."
+   "<c:Milo:5>To change weapon targets without adjusting the firing mode, just select a target as usual:"
+   "<c:Milo:5>Now let's switch the firing pattern to salvo mode!"
+   "<c:Milo:5>This is a replicator, it will allow you to duplicate an existing crew member for 700@!"
+   "<c:Milo:5> Pretty cool! right? <B:0> There is no limit to the number of replicants you can create, but beware: replicants have less HP, and they cannot be healed."
+   "<c:Milo:5> You can even create replicants from replicants, but they will be even weaker than the replicant that they were created from!"
+(eval-file "/scripts/reset_hooks.lisp"
+(setvar "powerdown_allowed" 1
+(setvar "rewind_disabled" 0
+(append '(("Introduction" "tutorials/overview.lisp" 0
+          ("Game Speed" "tutorials/game_speed.lisp" 1
+          ("Weapon Groups" "tutorials/weapon_groups.lisp" 2
+          ("Firing Patterns" "tutorials/firing_patterns.lisp" 3
+          ("Target Queueing" "tutorials/target_queueing.lisp" 4
+          ("Salvage" "tutorials/salvage.lisp" 5
+          ("Moving Blocks" "tutorials/moving_blocks.lisp" 6
+          ("Construction Tricks" "tutorials/construction_tricks.lisp" 7
+          ("Advanced Structures" "tutorials/advanced_structures.lisp" 8
+          ("Your Crew"  "tutorials/characters.lisp" 9
+          ("Replicators" "tutorials/replicator.lisp" 10
+          ("Transporters" "tutorials/transporter.lisp" 11
+          ("Portals" "tutorials/portals.lisp" 15
+          ("Adding Terrain" "tutorials/terrain.lisp" 12
+          ("Power Balance" "tutorials/power_balance.lisp" 13
+          ("Diverting Power" "tutorials/power_balance_2.lisp" 14
+            '(("template" "tutorials/template.lisp" 16
+   "<c:Milo:5>Having trouble navigating the construction menu? Did you know that the up and down buttons cycle through categories? The menu arranges blocks in order, based on category (wall, weapon, factory, power, misc, decor."
+   "<c:Milo:5>If you want to know more about what a block does, hover over it in the construction menu and press start. The game will open up the glossary to the correct page!"
+   "<c:Milo:5>Of course, you can always reach the glossary normally from the start menu, but the jump-to-page feature is handy if you already have the construction menu open. Finally, you may still find that there are too many choices in the construction menu. You can hide blocks that you don't want to see from the construction menu by selecting 'hide blocks' from the start menu!"
+(dialog "This is a template for a tutorial, see <B:0> /scripts/tutorials/template.lisp for more information."
+  (fatal "see log.txt in save data for key presses..."
+(key-bind "dd" 'tutorial-done ;; bind down-down sequence to function
+   "<c:Milo:5> Hi again! Did you know that, in addition to building new blocks, you can move around existing blocks? I'll Show you!"
+   "<c:Milo:5> Select an empty location on your island, and press and hold B until you see the island re-arrangement prompt! Then, by spending some resources, you can re-arrange the layout of your castle. When finished, press B again to exit!"
+   "<c:Milo:5> In addition to moving single blocks, you can also press-and-hold A or START to pick and move whole regions of blocks! Let's make some terrain first to give us room to move stuff..."
+   "<c:Milo:5> After opening the block movement menu like before, press and hold A to draw a rectangular selection, and release to begin moving regions!"
+   "<c:Milo:5> Finally, in addition to holding the B button over an empty space, you can access the block movement system through the SELECT menu."
+   "<c:Milo:5> And that's all there is to it! For the small fee of 800@, you can easily re-arrange your entire castle!"
+   "<c:Milo:5>Ever need more room to build? You can easily add more terrain to your island, just like this:"
+   "<c:Milo:5>Hey again! Did you know that you can assign weapons to groups? Weapon groups allow you to select multiple weapons at once! To edit your weapon groups, hold the START button and press down. Then, you can press the A button to cycle through three groups: the UP group, the LEFT group, and the RIGHT group."
+   "<c:Milo:5>Ok, now, we've assigned our cannons to the UP group, and our missiles to the LEFT group. By holding the START button and pressing the up directional button, we can assign a target for the whole group of cannons! Same thing for the missile group!"
+   "<c:Milo:5>By assigning weapon groups to hotkeys, you can quickly reassign a weapon target without needing to scroll to a weapon and click on it! Super useful!"
+   "<c:Milo:5>Weapon groups have a few different button mappings to make it possible to use them with different GBA button layouts. Hold START during the game for hints."
+   "<c:Milo:5>And, finally, you may hold the A button and drag to create a rectangular selection and set the target for batches of weapons. Any weapon targets set by rectangular selection will take priority over a weapon's group. How useful!"
+   "We seem to only be able to build a small set of structures. By constructing a workshop, we unlock a large number of additional rooms. Workshops also reduce construction cost for all new rooms by a bit."
+   "<c:Milo:5>Now, I know we've had a great time chatting, but some of the crew have been slacking off and don't really know what to do! Let's give them some work! <d:2000> Oh! <d:400> Right... <d:400> You can't see them, can you!? Press the SELECT button to open the SELECT menu and press SELECT again to view the interior of your castle."
+   "<c:Milo:5>That's better! To move your crew, select a character with your cursor, and press A. The game will display slots accessible to the character. Choose a slot, and press A again to confirm!"
+   "<c:Milo:5>I noticed earlier that this workshop took some damage... We can move one of our crew into the room to repair it. But how'll our unit reach the second floor of the castle? Let's build a stairwell!"
+   "<c:Milo:5>Oh! <d:500> All along, I thought this crewmember was just slacking off! But looks like he's injured! Let's build an infirmary where he can heal."
+   "<c:Milo:5>Ok! Now you should have no trouble ordering your crew around! Normally, your island automates crew positioning, but you can take control by hovering over a crewmember and choosing 'pin crewmember' from the SELECT menu! Even when crewmembers are not pinned, they will remain in place until they finish their tasks if you order them somewhere."
+   "<c:Milo:5> One final thing: When hovering over a crewmember, you may an icon. <B:0> The star icon refers to the number of battles that the crewmember participated in! <B:0> By using the select menu, you can see more crewmember stats! <B:0> Cool, huh?"
+   "<c:Milo:5> To make target assignment easier, weapons have command queues. <B:0> When picking a weapon target, you can press the SELECT button to create a target queue, allowing you to pick a weapon's (or weapon group's next three targets all at once! Just like this:"

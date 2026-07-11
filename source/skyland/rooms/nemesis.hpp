@@ -1,0 +1,121 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+
+
+#include "skyland/sharedVariable.hpp"
+#include "skyland/systemString.hpp"
+#include "skyland/types.hpp"
+#include "weapon.hpp"
+
+
+
+namespace skyland
+{
+
+
+
+extern SharedVariable nemesis_reload_ms;
+
+
+
+class Nemesis final : public Weapon
+{
+public:
+    Nemesis(Island* parent, const RoomCoord& position);
+
+
+    void fire() override;
+    Time reload_impl() const override;
+
+
+    void render_interior(App* app, TileId buffer[16][16]) override;
+    void render_exterior(App* app, TileId buffer[16][16]) override;
+
+
+    static WeaponOrientation weapon_orientation()
+    {
+        return WeaponOrientation::horizontal;
+    }
+
+
+    static void format_description(StringBuffer<512>& buffer);
+
+
+    static RoomProperties::Bitmask properties()
+    {
+        return Weapon::properties() | RoomProperties::roof_hidden |
+               RoomProperties::manufactory_required |
+               RoomProperties::oversize_explosion |
+               RoomProperties::multiboot_compatible |
+               RoomProperties::goblin_only;
+    }
+
+
+    bool description_visible() override
+    {
+        return true;
+    }
+
+
+    static Vec2<u8> size()
+    {
+        return {2, 1};
+    }
+
+
+    static constexpr const char* name()
+    {
+        return "nemesis";
+    }
+
+
+    static SystemString ui_name()
+    {
+        return SystemString::block_nemesis;
+    }
+
+
+    static ATP atp_value()
+    {
+        return 12.0_atp;
+    }
+
+
+    static Category category()
+    {
+        return Category::weapon;
+    }
+
+
+    void plot_walkable_zones(bool matrix[16][16],
+                             Character* for_character) override
+    {
+        // one cannot walk through this tile, intentionally do nothing.
+    }
+
+
+    static Icon icon()
+    {
+        return 1592;
+    }
+
+
+    static Icon unsel_icon()
+    {
+        return 1608;
+    }
+};
+
+
+
+} // namespace skyland

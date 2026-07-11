@@ -1,0 +1,1544 @@
+
+ api.txt
+
+ Describes all available
+ SKYLAND API calls.
+
+ Does not describe the
+ SKYLAND LISP standard
+ library. For builtin
+ functions, see
+ lisp_builtins.txt.
+
+
+
+##############################
+
+ Section 1:
+
+ Achievements and
+ unlockables
+
+##############################
+
+
+ (achieve integer)
+
+ Unlock achievement.
+
+
+o────────────────────────────o
+
+ (challenge-complete integer)
+
+ Label challenge # as
+ completed.
+
+
+o────────────────────────────o
+
+ (cart-add integer)
+
+ Add cart N to your datacart
+ library.
+
+
+o────────────────────────────o
+
+ (cart-found? integer)
+
+ True if you have unlocked
+ cart N.
+
+
+o────────────────────────────o
+
+ (cart-info integer)
+
+ Return a cart's name and
+ label.
+
+
+o────────────────────────────o
+
+ (cart-read integer
+            string-field)
+
+ Read the contents of a field
+ from a data cart.
+
+
+
+##############################
+
+ Section2:
+
+ Island modifications
+
+##############################
+
+
+ (cargo island x y)
+
+ Returns a string describing
+ the contents of cargo-bay
+ room at (x, y). Returns nil
+ if the cargo-bay does not
+ contain cargo. Raises a
+ fatal error if the room at
+ (x, y) is not a cargo bay.
+
+
+o────────────────────────────o
+
+ (cargo-set island x y value)
+
+ Store string value in
+ cargo-bay on island at
+ (x, y). Maximum nineteen
+ characters.
+
+
+o────────────────────────────o
+
+ (construction-sites
+  island
+  room-size-x/y-pair)
+
+ List all coordinates on
+ island where room of size
+ '(x . y) may be constructed.
+
+
+o────────────────────────────o
+
+ (flag-show island variant)
+
+ Display a flag. For opponent
+ islands only, you may pass
+ an integer variant for
+ alternate flag graphics to
+ display. Otherwise, pass
+ zero in the variant argument.
+
+ 1: marauder
+ 2: second empire
+ 3: pirate
+ 4: old empire
+ 5: banana
+ 6: merchant
+ 7: colonist
+ ... reserved slots ...
+ 36: sylph
+
+o────────────────────────────o
+
+ (groups)
+
+ List weapon groups.
+
+
+o────────────────────────────o
+
+ (groups-reset)
+
+ Clear weapon groups.
+
+
+o────────────────────────────o
+
+ (groups-add group x y)
+
+ Add weapon at coords (x,y)
+ to group specified by symbol
+ group.
+
+
+o────────────────────────────o
+
+ (island-configure
+    island
+    room-desc-list)
+
+ Configure rooms for and
+ island.
+
+
+o────────────────────────────o
+
+ (island-pos)
+
+ The real x,y coord of an
+ island in the game world.
+
+
+o────────────────────────────o
+
+ (opponent) -> isle
+
+ Returns a reference to the
+ opponent's island. NOTE:
+ Make sure that you've
+ called opponent-init before
+ trying to access the
+ opponent.
+
+
+o────────────────────────────o
+
+ (opponent-init
+    terrain-size
+    mode-sym)
+
+ Create an island for the
+ opponent, with
+ terrain-size. See
+ opponent-mode for
+ description of mode-sym.
+
+
+o────────────────────────────o
+
+ (opponent-generate integer)
+
+ Allow the engine to
+ generate a level. You lose
+ the handcrafted feel, but
+ still, it keeps the game
+ feeling fresh.
+
+ Integer argument
+ undocumented. A sort of
+ difficulty rating.
+
+
+o────────────────────────────o
+
+ (opponent-reset)
+
+ Clear the opponent island.
+
+
+o────────────────────────────o
+
+ (opponent-mode mode-sym)
+
+ If mode sym is 'hostile,
+ the opponent island will
+ run a hostile AI algorithm,
+ if the mode sym is
+ 'neutral, the opponent
+ will not attack unless
+ attacked by the player.
+
+
+o────────────────────────────o
+
+ (player) -> isle
+
+ Returns a reference to the
+ player's island.
+
+
+o────────────────────────────o
+
+ (qr-set island x y value)
+
+ Populate a code block with
+ text!
+
+
+o────────────────────────────o
+
+ (room-count island name-sym)
+
+ Return the number of room
+ instances matching name-sym
+ that're registered with the
+ engine.
+
+
+o────────────────────────────o
+
+ (rooms island)
+
+ Returns a list describing
+ the rooms associated with
+ island.
+
+
+o────────────────────────────o
+
+ (rooms-damaged island)
+
+ Returns a list of xy pairs
+ representing the locations
+ of rooms on the island that
+ have damage.
+
+
+o────────────────────────────o
+
+ (room-new island desc)
+
+ Add a room to island,
+ where desc is a list of
+ (room-sym room-x room-y)
+
+
+o────────────────────────────o
+
+ (room-del island x y)
+
+ Remove room room at x y from
+ island.
+
+
+o────────────────────────────o
+
+ (room-load island x y)
+
+ Retrieve info about a room
+ at x,y, if any.
+
+
+o────────────────────────────o
+
+ (room-is-critical island x y)
+
+ Return true if a room cannot
+ be safely removed from an
+ island without sinking it
+ (e.g. last power source).
+
+
+o────────────────────────────o
+
+ (room-mut island x y type-sym)
+
+ Convert a room to a
+ completely different type!
+ See rooms.lisp for all of
+ the type symbols.
+
+ The converted room must have
+ the same dimensions as the
+ source room, or the game will
+ raise a fatal error.
+
+
+o────────────────────────────o
+
+ (room-meta type-sym)
+
+ Accessor for metadata
+ describing a type of room.
+
+
+o────────────────────────────o
+
+ (room-hp isle x y)
+
+ Get a room's health.
+
+
+o────────────────────────────o
+
+ (room-hp-set isle x y new-hp)
+
+ Set a room's health.
+
+
+o────────────────────────────o
+
+ (room-target-get isle x y)
+
+ Get the weapon target of a
+ block at x,y.
+
+
+o────────────────────────────o
+
+ (room-target-set
+  isle x1 y1 x2 y2)
+
+ Set the target of a block at
+ x1,y1 to x2,y2.
+
+
+o────────────────────────────o
+
+
+ (terrain island)
+
+ Returns the size of an
+ island's terrain.
+
+
+o────────────────────────────o
+
+ (terrain-add-left island)
+
+ Add terrain to the lefthand-
+ side of an island, pushing
+ all blocks on the island
+ rightwards by one x
+ coordinate.
+
+
+o────────────────────────────o
+
+ (terrain-set island size)
+
+ Set island terrain size.
+ Negative sizes will result
+ in islands with invisible
+ terrain.
+
+
+
+##############################
+
+ Section3:
+
+ Crewmembers
+ (Characters, aka: chrs)
+
+##############################
+
+
+ (chr-new
+   island
+   x
+   y
+   mode-sym
+   plist)
+
+ Add character to island at
+ (x, y). Returns a unique
+ integer id.
+
+ Note: plist should contain
+ nil, or an association list
+ of properties.
+
+ Note: For historical
+ reasons (need to support
+ old save files), this
+ function accepts zero in
+ place of a property list.
+
+ Example:
+ '((rplc . 1))
+
+ Available properties:
+ 'rplc: The character is a
+ replicant.
+
+ 'race: The race of the
+ character:
+   0 - Human (default)
+   1 - Goblin
+   2 - Hostile human
+   3 - Dog 
+   4 - Sylph
+
+ 'icon: Character artwork
+
+o────────────────────────────o
+
+ (chr-find isle key value)
+
+ Find all crewmembers where
+ a key in the character info
+ list matches a value.
+
+ Returns a list of crewmember
+ info for each matched
+ cremember.
+
+
+o────────────────────────────o
+
+ (chr-hp id hp)
+
+ Set health of character by
+ id.
+
+
+o────────────────────────────o
+
+ (chr-move
+   island
+   x
+   y
+   dest-x
+   dest-y)
+
+ Move character from (x, y)
+ to (dest-x, dest-y).
+
+
+o────────────────────────────o
+
+ (chr-del island x y)
+
+ Remove character from
+ from slot (x, y).
+
+
+o────────────────────────────o
+
+ (chrs island)
+
+ Returns a list describing
+ all of the inhabitants of
+ an island.
+
+
+o────────────────────────────o
+
+ (chr-slots island)
+
+ Returns a list of coords
+ into which a character can
+ be inserted.
+
+
+
+##############################
+
+ Section4:
+
+ Callbacks
+
+##############################
+
+
+ (on-fadein)
+ (on-converge)
+ (on-dialog-closed)
+ (on-room-destroyed)
+ (on-victory)
+ (on-crew-died)
+ (on-shop-item-sel)
+ (on-shop-enter)
+
+ A set of event functions,
+ called by the engine for
+ various scenarios. You may
+ override any of these
+ functions with custom
+ behavior.
+
+ NOTE: on-room-destroyed is
+ somewhat costly to register
+ a callback for. But better
+ to provide it than not at
+ all.
+
+
+
+##############################
+
+ Section5:
+
+ World Map
+
+##############################
+
+
+ (wg-nodes)
+
+ Get a list of all world
+ graph nodes, i.e. nodes
+ associated with the sky
+ chart in adventure mode.
+
+ Result in format:
+
+ '((type x . y) ...)
+
+
+o────────────────────────────o
+
+ (wg-generate)
+
+ Regenerate world graph.
+
+
+o────────────────────────────o
+
+ (wg-current-type)
+
+ Returns the type enumeration
+ of the currently visited
+ world graph node.
+
+
+o────────────────────────────o
+
+ (wg-node-set x y type)
+
+ Assign a world graph node.
+ x y must be a valid existing
+ node (see wg-nodes).
+
+
+o────────────────────────────o
+
+ (wg-node-move x1 y1 x2 y2)
+
+ Relocate a world graph node
+ to a new coordinate.
+
+ Calling this function on the
+ player's currently inhabited
+ node is undefined behavior.
+
+
+o────────────────────────────o
+
+ (wg-path '(x1 . y1) '(x2 . y2))
+
+ Find a path between two
+ coordinates, if one exists.
+
+
+o────────────────────────────o
+
+ (wg-pos)
+
+ Return info about the
+ player's position in the
+ world graph:
+
+ '(zone x . y)
+
+
+o────────────────────────────o
+
+ (wg-storm-frontier)
+
+ Return the position of the
+ storm boundary.
+
+
+o────────────────────────────o
+
+ (wg-storm-frontier-set v)
+
+ Set the position of the
+ storm boundary to v.
+
+
+o────────────────────────────o
+
+ (wg-is-x-behind-frontier? n)
+
+ Check if a node x coord is
+ behind the storm boundary.
+
+
+o────────────────────────────o
+
+ (wg-turns-remaining '(x . y))
+
+ Number of turns before an
+ x,y coord falls into the
+ storm.
+
+
+o────────────────────────────o
+
+ (wg-nav-path)
+
+ Return the current navigation
+ path drawn by the player.
+
+ NOTE: This function returns
+ a list of indices into the
+ (wg-nodes) list, not a list
+ of coordinate pairs.
+
+
+o────────────────────────────o
+
+ (wg-nav-path-set path-list)
+
+ Set the navigation path.
+
+ path-list should be of a
+ similar format described int
+ the documentation of
+ (wg-nav-path)
+
+ path-list should not exceed
+ 16 entries.
+
+
+
+##############################
+
+ Section7:
+
+ Miscellaneous
+
+##############################
+
+
+ (click island x y)
+
+ Simulate clicking on a block
+ on an island at coordinate
+ x,y.
+
+
+o────────────────────────────o
+
+
+ (choice n)
+
+ Returns a random number
+ between 0 and n.
+
+
+o────────────────────────────o
+
+ (coins)
+
+ Return the player's coin
+ count.
+
+
+o────────────────────────────o
+
+ (coins-add rational)
+
+ Add integer coins to the
+ player's coin count.
+
+
+o────────────────────────────o
+
+ (coins-set rational)
+
+ Override coin count.
+
+
+o────────────────────────────o
+
+ (coins-victory)
+
+ The coin count that is set
+ to be given to the player if
+ victorious.
+
+
+o────────────────────────────o
+
+ (configure-rooms config)
+
+ See
+ /scripts/config/rooms.lisp
+ for usage.
+
+
+o────────────────────────────o
+
+ (databuffer-inspect buffer)
+
+ Open a memory viewer for any
+ given databuffer.
+
+ See also:
+ databuffer
+ lisp-mem-string-buffers
+
+
+o────────────────────────────o
+
+ (device-info selector-sym)
+
+ (device-info 'name)
+
+ Returns the name of the
+ specific hardware that the
+ software is running on. For
+ example:
+
+ "GameboyAdvance"
+ "PC"
+
+ (device-info 'variant)
+
+ Returns the name of the
+ variation of the device
+ running the software.
+ For example:
+
+ GameboyAdvance:
+ "NDS"
+ "AGB_OR_AGS"
+ ...
+
+ PC:
+ "Mac"
+ "Linux"
+ ...
+
+
+o────────────────────────────o
+
+ (dialog strings ...)
+
+ Composes a dialog message
+ from the list of input
+ strings. The game will
+ open a dialog box with the
+ message next time it
+ reaches a state where it
+ can display dialog.
+
+
+o────────────────────────────o
+
+ (dialog* strings ...)
+
+ The new dialog function,
+ which returns a promise for
+ waiting on the result,
+ rather than invoking dialog
+ callbacks.
+
+ await on dialog* will return
+ the number of the dialog opt
+ selected, if the user was
+ presented with a dialog box.
+
+ NOTE: the callback pushed to
+ dialog-opts will still be
+ invoked as well.
+
+
+o────────────────────────────o
+
+ (has-dialog?)
+
+ True if any dialog text has
+ been pushed to the engine
+ with the dialog function.
+
+
+o────────────────────────────o
+
+ (difficulty)
+
+ Return an int representing
+ the difficulty.
+
+
+o────────────────────────────o
+
+ (difficulty-set integer)
+
+ Set the difficulty.
+
+
+o────────────────────────────o
+
+ (effect "name" x y)
+
+ Create a special effect.
+ Choose from a selection of
+ available effects:
+
+ lightning,explosion,
+ big-explosion,
+
+
+o────────────────────────────o
+
+ (emit isle
+       x1
+       y1
+       x2
+       y2)
+
+ Causes a given weapon at pos
+ x1 y1 to emit its projectile,
+ aimed at x2 y2, ignoring
+ weapon reload timing.
+
+
+o────────────────────────────o
+
+ (engine-set symbol int)
+
+ Configure a SKYLAND engine
+ variable.
+
+
+o────────────────────────────o
+
+ (engine-get symbol)
+
+ Retrieve a SKYLAND engine
+ variable.
+
+
+o────────────────────────────o
+
+ (eval-file path)
+
+ Evaluate code in another
+ script, given by path.
+
+
+o────────────────────────────o
+
+ (read-file path)
+
+ Read all lisp expressions
+ from a file.
+
+
+o────────────────────────────o
+
+ (exit)
+
+ Exit the current level.
+
+ If you invoke (exit 1), then
+ the level will exit
+ immediately. (exit 2) shows
+ the victory screen. (exit 3)
+ shows the defeat screen.
+
+
+o────────────────────────────o
+
+ (help)
+
+ No arguments: open up the
+ help directory of the file
+ browser.
+
+
+o────────────────────────────o
+
+ (is-developer-mode)
+
+ Returns true if the game is
+ set to developer mode.
+
+
+o────────────────────────────o
+
+ (is-regression-mode)
+
+ Returns true if the game is
+ running regression tests.
+
+
+o────────────────────────────o
+
+ (key-bind str symbol)
+
+ While the game does not
+ allow you to remap all of
+ the buttons, SKYLAND
+ allows you to press the
+ START button and enter
+ sequences of keys. To create
+ a custom binding, specify
+ a key sequence in str,
+ along with a LISP symbol
+ representing a callback
+ function name.
+
+ Key character codes:
+ u: D-pad-up
+ d: D-pad-down
+ l: D-pad-left
+ r: D-pad-right
+ a: A
+ b: B
+
+ So:
+
+ (key-bind "uulb" 'repl)
+
+ Would launch a LISP repl
+ after the user pressed
+ up-up-left-B.
+
+
+o────────────────────────────o
+
+ (key-reset)
+
+ Clear all existing bindings
+ created by key-bind.
+
+
+o────────────────────────────o
+
+ (lang)
+
+ Return the bound language
+ file. e.g.:
+
+ "english"
+
+
+o────────────────────────────o
+
+ (lang-set)
+
+ Bind a different language
+ file. e.g.:
+
+ (lang-set "english")
+
+
+o────────────────────────────o
+
+ (level-retry)
+
+ Try to reload the current
+ level from the beginning.
+
+
+o────────────────────────────o
+
+ (lint-file path)
+
+ Run a linter program on the
+ LISP code in the file given
+ by path.
+
+ Returns an error upon
+ detecting an error, or
+ returns nil otherwise.
+
+
+o────────────────────────────o
+
+ (load-library path)
+
+ Attempt to load pre-compiled
+ lisp bytecode from a path in
+ save memory. Binds the
+ results to global variables.
+
+
+o────────────────────────────o
+
+ (open-library path)
+
+ Attempt to load pre-compiled
+ lisp bytecode from a path in
+ save memory. Returns a list
+ of (symbol . function)
+ pairs.
+
+
+o────────────────────────────o
+
+ (save-library path
+               linkage
+               symbols)
+
+ Store a collection of
+ bytecode compiled functions
+ specified by the symbols list
+ to save memory, in a file
+ specified by path.
+
+ If you pass 'absolute in
+ the linkage parameter,
+ future load-library calls
+ will fail if scripts or the
+ skyland application version
+ changes, and you'll need to
+ rebuild the library. If you
+ specify 'relocatable, then
+ the software will output
+ a relocation table for the
+ linker, making that bytecode
+ portable across different
+ builds and versions.
+
+ NOTE: relocatable bytecode
+ is quite a lot larger, and
+ you shouldn't use it for
+ bytecode stored in save
+ memory.
+
+
+o────────────────────────────o
+
+ (log val)
+
+ Write a value to the
+ system log.
+
+
+o────────────────────────────o
+
+ (mem-log-diagnostics)
+
+ Write memory diagnostics to
+ the system-log.
+
+
+o────────────────────────────o
+
+ (mem-sbr-free)
+
+ Return the number of memory
+ buffers free.
+
+
+o────────────────────────────o
+
+ (mem-sbr-used)
+
+ Return the number of memory
+ buffers currently in use.
+
+
+o────────────────────────────o
+
+ (mem-pools)
+
+ Return a list of names of
+ memory pools managed by the
+ engine.
+
+
+o────────────────────────────o
+
+ (mem-pool-info pool-num)
+
+ Info about a memory pool.
+
+
+o────────────────────────────o
+
+ (nimbus)
+
+ Load SKYLAND OS's nimbus gui
+ layer.
+
+
+o────────────────────────────o
+
+ (on-timeout
+  milliseconds
+  callback-sym)
+
+ Invoke function bound to
+ callback-sym after integer
+ milliseconds have passed.
+
+
+o────────────────────────────o
+
+ (port mode)
+
+ Configure serial port.
+ Supported modes:
+
+ 1: Serve a command line over
+    UART, at 9600 baud.
+
+
+o────────────────────────────o
+
+ (push-menu menu-name-str params)
+
+ Allows you to open up certain
+ game menus. Multiple
+ sequential push-menu calls
+ will push requests to a
+ queue, such that subsequent
+ requests will be processed
+ after the requested menu
+ is closed.
+
+ An additional parameter may
+ be passed to push-menu for
+ certain menus. See below:
+
+ Built-in menu names:
+ "ready", no params
+ "item-shop", no params
+ "glossary", room type symbol
+ "repl", no params
+ "construction", no params
+ "qrcode", string to encode
+ "text-entry", '(required-chars char-limit)
+ "file-browser", '(directory allow-backtrack)
+ "dialog-chain", no params.
+ "title-screen", integer page num
+
+ NOTE:
+ dialog-chain initiates a loop
+ where the game plays dialog
+ messages, and will only stop
+ after pushing a different menu.
+
+ Some menus that produce
+ responses will pass the
+ response back by calling
+ on-menu-resp with the
+ response as an argument.
+
+ For example:
+ (push-menu "glossary" '(hull))
+ (push-menu "item-shop" '())
+
+ (defn on-menu-resp (text)
+   (log (string "got text: " text)))
+ (push-menu "text-entry" '(8 8))
+
+ etc. See scripts for details.
+
+ You may also script custom
+ menus. See
+ /scripts/data/gui/
+
+
+o────────────────────────────o
+
+ (savegame)
+
+ This shouldn't need any
+ explanation...
+
+
+o────────────────────────────o
+
+ (settings-load)
+
+ Returns a list of settings.
+
+
+o────────────────────────────o
+
+ (settings-save settings)
+
+ Save and apply game settings.
+ The input settings list
+ should be an association list
+ similar to the data returned
+ by settings-load.
+
+
+o────────────────────────────o
+
+ (score)
+
+ Return the current score.
+
+
+o────────────────────────────o
+
+ (score-add rational)
+
+ Increase the player's
+ score.
+
+
+o────────────────────────────o
+
+ (sel-move island x y)
+
+ Move the cursor to island:
+ x, y.
+
+
+o────────────────────────────o
+
+ (sel-input
+  room-sym
+  msg
+  callback)
+
+ Opens up a selection prompt
+ ingame, with string msg.
+ When the user presses the A
+ button, the game will invoke
+ function callback with
+ parameters island, x, y.
+
+ If you pass a room name
+ in argument zero, the engine
+ will reject selections if
+ there is there is less free
+ space at the cursor
+ coordinate than specified by
+ the pair of x,y constraints.
+ Pass nil if you don't care.
+
+ For example:
+
+(sel-input 'hull "pick a coord:"
+ (lambda (isle x y)
+  (log (string
+        "user entered "
+        isle
+        x
+        y))))
+
+
+o────────────────────────────o
+
+ (sel-input* room-sym msg)
+
+ The new sel-input function.
+ Returns a promise object,
+ which can be passed to the
+ await keyword.
+
+ Yields a pair containing xy
+ coords.
+
+ (let ((xy (await
+            (sel-input ...))))
+   ...)
+
+
+o────────────────────────────o
+
+ (sel-input-opponent
+  room-sym
+  msg
+  callback)
+
+ Like the sel-input prompt,
+ but for the opponent's
+ island.
+
+
+o────────────────────────────o
+
+ (sound "name")
+
+ Play a sound effect.
+
+
+o────────────────────────────o
+
+ (show-fps bool)
+
+ Display FPS in the top left
+ corner.
+
+
+o────────────────────────────o
+
+ (fatal value)
+
+ Terminate the game, and
+ display fatal error message
+ containing value.
+
+
+o────────────────────────────o
+
+ (file-load path)
+
+ Loads and returns to contents
+ of a file.
+
+ This function can only load
+ files smaller than 2 KB.
+
+
+o────────────────────────────o
+
+ (file-read file offset len)
+
+ Read a range of bytes from
+ a file from the given begin
+ to end index range.
+
+
+o────────────────────────────o
+
+ (file-write! file offset val)
+
+ Write to a loaded file
+ object.
+
+ If you pass -1 as the offset,
+ then new data will be
+ appended to the end of the
+ file.
+
+ val should be a bytes list,
+ see int-to-bytes or
+ string-to-bytes, for example.
+
+
+o────────────────────────────o
+
+ (file-store file-data)
+
+ Store a file back to disk.
+
+
+o────────────────────────────o
+
+ (file-unlink path)
+
+ Delete a file.
+
+ NOTE: Files in ROM cannot
+ be unlinked, for obvious
+ reasons. The game sort of
+ has two filesystems, one in
+ save RAM, and one in ROM.
+ The game will preferentially
+ load save RAM files before
+ searching the ROM filesystem,
+ so you can override rom
+ files with files generated
+ at runtime, but you cannot
+ delete ROM files. Of course,
+ you could write a mostly
+ empty file to the save RAM
+ filesystem...
+
+
+o────────────────────────────o
+
+ (file-get-line path line)
+
+ Retrieve a string containing
+ a line of a file given by
+ integer line, and path to
+ file given by path.
+
+ Note: File lines start from
+ 1. As they do in virtually
+ all text editors. Passing 0
+ will give you an empty
+ string.
+
+
+o────────────────────────────o
+
+ (file-line-count path)
+
+ Return the number of lines
+ in a file.
+
+
+o────────────────────────────o
+
+ (filesystem-remaining)
+
+ Returns the amount of free
+ space for writing files.
+
+
+o────────────────────────────o
+
+ (filesystem-walk root
+                  callback)
+
+ Invoke callback for every
+ file in the filesystem,
+ within the directory path
+ provided in the root
+ parameter.
+
+
+o────────────────────────────o
+
+ (read-ini ini-file-path
+           section
+           value)
+
+ A special function for
+ reading values out of an ini
+ file.
+
+ Maybe someday I'll use this
+ for localization...
+
+o────────────────────────────o
+
+ (recover-crash)
+
+ Restores an adventure
+ from backup files in the
+ crash/ folder of save data.
+
+
+o────────────────────────────o
+
+ (gui-add-node id type)
+
+ Add a node to the gui tree.
+
+
+o────────────────────────────o
+
+ (gui-set-attr id name value)
+
+ Assign an attribute in a
+ gui element.
+
+
+o────────────────────────────o
+
+ (gui-delete-node id)
+
+ Delete a gui node.
+
+
+o────────────────────────────o
+
+ (version)
+
+ Return the engine version,
+ as a list:
+
+ '(major minor subminor patch)
+
+
+o────────────────────────────o
+
+ (wait* milliseconds)
+
+ Returns a promise that
+ resolves after the specified
+ delay in milliseconds.
+ Must be used with await.
+
+ Example:
+   (await (wait* 1000))
+
+
+o────────────────────────────o
+
+ (weather-set int)
+
+ Set the weather type.
+
+
+o────────────────────────────o
+
+ (weather)
+
+ Get the current weather
+ type.
+
+
+o────────────────────────────o
+

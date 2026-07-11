@@ -1,0 +1,732 @@
+
+SKYLAND
+yes
+no
+Multiplayer Settings
+Ready? Press start!
+co-op
+vs
+game mode
+prep seconds
+unhide prep
+resources
+terrain size
+Waiting for other player...
+timeout freq (sec)
+timeout length (sec)
+air
+amplifier
+annihilator
+arc-gun
+arch
+standby-core
+ballista
+balloon
+banana-plant
+barrier
+basalt
+basalt-brick
+carved-basalt
+beam-gun
+bell
+big-hull
+war-engine
+bridge
+bronze-hull
+building
+carved-hematite
+carved-stone
+chaos-core
+cloak
+cocoa
+command-module
+splinter-rocket
+caesium
+salvage-arm
+crops (rotten! pick sooner!)
+carved-crystal
+crystal
+crystal-pillar
+dome
+snow
+stacked-hull
+mirror-hull
+market-stall
+bulkhead-door
+cannon
+cargo-bay
+particle-lance
+phase-shifter
+power-core
+portal
+decimator
+deflector
+drone-bay
+escape-beacon
+farmhouse
+flak-gun
+flimsy-cannon
+fire-charge
+food
+forcefield
+forcefield*
+fountain
+gold-block
+granary
+port
+hematite
+hematite-pillar
+swerve-missile
+honey
+hull
+ice
+incinerator
+indigo
+infirmary
+ion-cannon
+ion-fizzler
+ladder
+ladder+1
+lady-liberty
+lava
+lava*
+lemon-tree
+light-source
+lumber
+rose-madder
+manufactory
+marble
+masonry
+missile-silo
+mycelium
+nemesis
+ocher
+overdrive-core
+coconut-palm
+pearls
+piston
+plundered-room
+potatoes
+energized-hull
+code
+radar
+radiator
+reactor
+replicator
+resonator
+rice
+rail-ns (decoration)
+rail-we (decoration)
+rail-hub
+rocket-bomb
+sylph-cannon
+saffron
+sand
+truss
+shellfish
+shrubbery
+singularity
+solar-cell
+spark-cannon
+speaker
+stairwell
+stairwell+1
+stairwell+2
+statue
+stone-pillar
+sticky-piston
+sunflower
+switch
+synth
+targeting-computer
+tea
+terrain
+tulips
+tuning-crystal
+dynamite
+dynamite-ii
+torch
+transporter
+soil
+atomic-missile
+water
+water*
+weather-engine
+wheat
+windmill
+wool
+workshop
+???
+/tiled
+/vines
+/brick
+/a-good-boy
+/pocket-monster
+/friendly-troll
+/gotta-go-fast
+red
+black
+resize bridge: <- ->
+(bird)
+(human) 
+(goblin) 
+(replicant) 
+(human*) 
+(dog) 
+(sylph) 
+adventure
+challenge
+multiplayer
+extras
+macrocosm
+Achievements
+Credits
+Update Loader
+DLC Manager
+Factory Reset
+File Browser
+Flag Designer
+Glossary
+Battle Sandbox
+SKYLAND Forever
+Text Editor
+Highscores
+Tutorials
+Developer Mode
+Checkers
+Date/Time
+Feedback
+Bug Report
+Data Carts
+Macro Freebuild
+Run Regression
+Color Profiles
+Edit Settings
+Controls
+Edit Controls
+January,February,March,April,May,June,July,August,September,October,November,December,
+Enable developer mode? Lets you run custom code, but highscores will not be recorded while enabled.
+Developer mode successfully disabled!
+cargo: 
+none
+draw path (%/%):
+:build
+:build :add-terrain 
+insufficient resources @!
+insufficient power supply!
+too many blocks
+not enough space!
+only one allowed!
+size
+walls
+weapons
+factories
+power
+passages
+misc
+decor
+Evan Bowman presents
+Copyright ©2021-%
+year:
+create block:
+build improvement:
+harvest:
+:rotate
+:raise
+:layers
+view threshold: 
+:next day
+no crops ready for harvest!
+:check harvest
+enter
+create colony
+isle (fullsize)
+atoll (tiny)
+edit name
+available: %
+cost: %_
+handbook: 
+population 
+productivity 
+food 
+crops
+colonies
+Every island starts with one resident. Each day, your islands will gain and lose residents based on available food and housing! Build more housing to encourage villagers to settle!
+Each of your villagers produces ten productivity points per day! Spend productivity to build structures, plant or harvest crops, and more!
+Each villager consumes one unit of food per day. Be sure to plant some crops; your residents will start to leave if there's nothing to eat!
+Each island can store five units of food. Build granaries to increase your food storage limit!
+Crops take a few days to ripen. Check them regularly! If you leave ripe crops unharvested, they'll go bad! Press the left shoulder button + A to check for ripe crops!
+Crops won't grow in the dark. But you can build light sources, allowing you to layer crops vertically!
+Wheat: 2 days, yield 3, Potatoes: 6 days, yield 15, Lumber: 10 days, yields wood
+When you have a large enough population, you can settle other nearby islands! See the macrocosm menu for options.
+trade colony
+scuttle colony
+Rename island:
+budget: 
+citizens (employed)
+citizens
+homelessness
+total
+starvation
+happiness
+unhappiness
+food supply
+housing supply
+population density
+total happiness
+population growth pressure
+cube
+wide
+pillar
+wider
+standard
+superflat
+(mode-lock)
+Like a cannon, but in drone form! Can be deployed anywhere around the perimeter of your opponent's fortress.
+A drone specialized in targeting other drones. Combat drones are the only unit that can successfully lock weapons on a drone.
+Repairs blocks in a 3x3 radius around the repair drone, at a rate of 6hp per second. Also puts out fires.
+Select a reconstruction drone to choose a set of blocks to automatically rebuild. The reconstruction drone will spend resources and rebuild the selected blocks for you!
+Like a flak-gun, but as a drone!
+Emits antimatter pulses that explode when colliding with forcefields, damaging everything within range = 2. For energized-hull, smaller explosion and range = 1.
+Dredging crane, salvage scrap from the flooded world below! Adventure mode only. Usable once per level, during clear weather.
+Every flying island needs a power core to stay afloat! Supplies power to your castle's structures.
+Energy from the sun! 1/2 power output during cloudy weather.
+While slightly less powerful than an ordinary cannon, its attacks spread fire.
+A weapon for targeting the roof of an enemy fortress. Deals % damage every %.% seconds.
+Water! Puts out fire in adjacent tiles.
+Water source block.
+Slightly lowers the construction cost of all blocks.
+Shows the interior of hostile castles! Radars also improve transporter accuracy, as well as movement range on the world map!
+Cancels all ion damage on contact. Useful for protecting vulnerable structures, such as reactors or forcefields, from ion cannons.
+"Give me your tired, your poor, your huddled masses yearning to breathe free."
+Flows across an island, sets non-fireproof blocks aflame.
+Lava source block.
+...
+Plays chiptunes! Connect up to three synth blocks to the right of the speaker block! When finished playing, activates whatever block is placed beneath it, if any.
+Ni!
+Deals ion damage. Ion bursts pass harmlessly through most blocks, but deal % damage every %.%s to forcefields, reactors, etc..
+Deals % damage every %.% seconds, but unlike other weapons, damage chains to all identical neighboring structures.
+Hull, but made out of bronze! Pretty, huh?
+Takes 75% less damage from missiles.
+Reflects projectiles (except missiles!). Still takes damage, though.
+An unusual cannon-type weapon. Damage starts at %, and rises to % when health drops to 1/2, % when health drops below 1/4. %.% sec reload.
+An essential defensive structure.
+Blocks enemy projectiles, but allows your own weapons to shoot through. Vulnerable to ion damage.
+An upgraded forcefield.
+An upgraded power-core. Supplies much more energy, continues running when damaged, but is susceptible to ion damage.
+Used for restricting the movement of enemy boarding parties. Your crew may walk through doors, but not enemy units. Fireproof.
+Transport boarding parties into an enemy castle! Selects a random destination, unless you have a radar.
+Upgraded hull. Much more durable, but susceptible to ion damage.
+Deals low damage, but spread over large areas. Highly destructive when used in groups against castles with thin hull.
+An upgraded workshop. Slightly lowers the construction cost of all blocks.
+While ineffective against most modern weaponry, villagers in skyland still build structures with stone, because it looks nice. Click to change style.
+A shiny metal statue. Click to change style.
+A massively destructive weapon with a sluggish %.% second recharge. Reloads and fires only when inhabited by a character.
+A structure designed to bridge a large vertical distance by dividing it into smaller vertical distances, often called steps.
+A placeholder structure created after a character destroys a room by plundering.
+Programmable audio block. Must be placed within three tiles to the right of a speaker block. Position determines channel (+1 sqr, +2 sqr, +3 noise).
+Stores one unit of cargo. Required for quests in adventure mode!
+A reliable artillery weapon. Deals % damage every %.% seconds.
+Emits harmful radiation, damaging any character standing within two spaces away.
+A switch! When the lefthand side of the switch is selected, it'll select one of two targets, epending on the position of the switch.
+...
+Indestructable hull. May only be built in sandbox mode.
+Once activated, transports an island out of a battle after 60 seconds.
+An organic defensive structure. Grows to cover the whole surface of a castle. Will not grow on fluid blocks, forcefields, or other mycelium.
+Water freezes to ice blocks in snowy weather...
+A block produced when water interacts with lava.
+Highly flammable, but takes no burn damage. Sandbox mode only.
+Reacts violently with water! Sandbox mode only.
+May be salvaged for one hundred percent of its value! Useful for co-op multiplayer.
+Weaker than regular missiles, but with a wider damage radius, and starts fires.
+Changes the weather!
+Automatically chooses weapon targets for you! You might be able to do a better job yourself, but oh, how convenient! (and you can still pin targets manually)
+Produces zero power, unless all of your other power supplies are destroyed. A last resort! Only one allowed per island.
+Like a stairwell, but half as tall.
+Heals inhabitants, slower for each additional inhabitant. Only heals crew originating from the same island as the infirmary.
+Produces replicants. A replicant has 75% of the health of the source character, and cannot heal.
+Deploys a drone! When destroyed, the deployed drone will also be destroyed.
+A powerful weapon that only works in the stormiest weather. Gains one ammo and charges one level per lightning strike.
+Text written in some strange language... what could it mean? (If you see one, click to enlarge)
+Conceal blocks! AI player cannot see blocks created fully within a cloak. AI will guess cloaked blocks based on behavior. Takes ion damage.
+This block used to control the crew AI, but is no longer needed.
+...
+An old weapon from the surface world below, no one knows how to build them anymore... starts raging fires... if you're lucky, maybe you'll find one...
+Built long ago on the surface, this laser burns through everything in its path, dealing damage to each block that its beam touches.
+Built thousands of years ago during the surface wars. Extremely durable and repairable, with huge power output. No one makes engines like this anymore.
+Mostly decorative, but generates some power. Power output doubled in stormy weather. One allowed per island.
+Built on the surface, these missiles divide into ten projeciles upon impact and ricochet off walls. Few, if any, still exist, look in shops...
+Like a ladder, but one block taller. (Upgrade a ladder via the SELECT menu)
+Like a stairwell, but one block taller.
+Like a stairwell+1, but one block taller.
+A small single-person vessel. Often used by villagers to make long trips between islands; it doesn't use much fuel.
+A barbaric weapon from long ago. Creates a huge explosion, spreading damage and fire over a large area. A well-placed shot can easily demolish half of a castle. Single use.
+...
+What could this be? You'll have to try it out in the sandbox level editor and see what it does... (max % allowed per level).
+Originally designed to shield against harsh radiation on the surface. Emits a defensive energy field - all nearby blocks will take % damage less.
+Allows crewmembers to travel instantly to any other portal on your island! More resource-hungry than a stairwell, but allows you to design very compact castles!
+One of the few pieces of technology goblins have managed to invent. Generates % power for each unique block in your castle! Don't let it explode, though...
+Speeds up recharge times for nearby blocks. Rare, fragile, and incredibly valuable.
+A specialized beam weapon that deals %% of a block's maximum health in damage. More effective against hull than regular cannons, weak against delicate blocks.
+Goblins tried to design a better cannon; it's powerful, yet flawed - starts at % damage, drops to % at half health, and % at quarter health.
+An ancient Sylph technology that briefly shifts matter between realities. While activated, provides % seconds of invulnerability, % second recharge.
+While similar in concept to classical siege weapons, this artillery gun is much more destructive. Fires heavy bolts in a wide arc, bypassing standard defenses.
+A ship's bell. Click to ring it!
+A decorative bridge... resize it via the SELECT menu!
+A power-core, modified to boost its energy output. The jury-rigged modifications make the core delicate - it will overload if its health drops below %% (%).
+When activated, causes your reactor crystals to resonate at a matching frequency, changing their energy output color!
+Built by the Sylph for mining dense ore deposits, this particle beam burns though everything in its path horizontally. Due to its age, it will disintigrate after one use.
+An advanced Sylph power supply. Each resonator generates % additional power for every other resonator on your island.
+paused
+slow
+regular
+fast
+rewind
+error
+speed: 
+resume
+glossary
+hibernate
+hide blocks
+save sandbox
+load sandbox
+quit
+scuttle (quit)
+sky map
+Give me a hint!
+what's sandbox mode?!
+save
+load
+macrocosm
+next day
+adjust view
+newgame
+connect a friend
+share island
+spectate
+continue building
+script console
+surrender
+samples
+generate terrain
+Are you sure?
+START: drop in
+please wait...
+really salvage?  +
+A: yes 
+B:  no 
+cannot salvage populated room!
+this block cannot be salvaged!
+scuttle drone?
+clear
+sunshower
+rain
+snow
+storm
+radioactive ash
+night
+solar storm
+rearrange blocks? %@
+pick a block to move:
+pick destination:
+select weapons:
+Achievement:
+Unlocked:
+assign weapon groups:
+set weapon targets
+set weapon group
+pick weapon group: 
+deploy:
+launch drone: select position
+automate reconstruction:
+selected %/%:
+-- highscores --
+score
+l + r: share top score
+SEL: leaderboard
+Scan to view leaderboard!
+Enter your token:
+Step 1: Scan to request a login token!
+
+Scan to upload score!
+A: next 
+Preparing QR Code...
+combos: START + ?
+set weapon groups
+weapon group 1
+weapon group 2
+weapon group 3
+pick weapon group
+SEL autoassign weapons
+shortcut: 
+time
+pauses used
+resources spent
+blocks built/lost
+select a destination:
+recover character?
+start mind control?
+showing: repair range
+create replicant? -
+cancel
+autoresolve
+Reset sandbox?
+exit
+setup switch: connect ON:
+setup switch: connect OFF:
+on
+off
+-- zone % --
+loading...
+visited
+neutral
+hostile
+storm
+quest
+shop
+uncharted
+quest marker
+progress saved...
+Your crew is taking a break,
+come back soon!
+sky map - zone %
+storm >>
+exit
+save and quit
+save
+sky map - plot a course:
+resources
+terrain size
+music
+dependencies
+weather
+Sandbox Settings
+Press A to begin
+crew
+Endless new levels! Survive as long as possible!
+Press A to begin
+SKYLAND Forever
+difficulty
+beginner
+normal
+hard
+maniac
+Setup
+(press A to start)
+The easiest mode, but still challenging. Extra tries if you die.
+Enemies give you less resources. Score x2. Harder level patterns.
+Enemies give you even less resources. Score x4. Even harder level patterns.
+No pausing. Score x6.
+permadeath
+Turned on. Saves can currently only be loaded once!
+Turned off. Saves can now be loaded repeatedly! SCORE REDUCED BY 50%.
+faction
+Balanced. Innovative, resourceful, and able to construct neat tech.
+Strategy focused, with strong support blocks.
+Locked: complete adventure mode first!
+Powerful blocks with risky drawbacks, improved transporter efficiency.
+Select a faction at random
+human
+sylph
+goblin
+random
+Exit tutorial?
+Builder
+Build an island with more than ten structures!
+Architect
+Build an island with more than twenty structures!
+Architect (2)
+Build an island with more than twenty structures!
+Explorer
+Reach zone 2!
+Strategist
+Reach zone 3!
+Stronghold
+Build a castle with at least four power-cores!
+dynamite
+Complete any challenge level!
+Virtuoso (1)
+Complete three challenge levels!
+Virtuoso (2)
+Complete three challenge levels!
+Triage
+Destroy invading goblins with dynamite!
+Banana Man
+Complete Banana Man's quest!
+Borrowed tech
+Destroy a decimator by plundering!
+Ship of Theseus
+Find and defeat the mimic ship!
+Lemons Rescued!
+Complete Farmer Meyer's quest!
+The New Colossus
+Settle at least seven people in your castle at once!
+Meltdown
+Destroy an opponent's reactor with ion damage!
+Completionist
+Finish all challenge levels!
+Symbiosis
+Complete the "Mycelium!" challenge!
+Primitive
+Reach zone 3 without building a workshop!
+Hero
+Defeat the Storm King!
+Edge of the world!
+Reach the rightmost level of zone 4!
+Raid
+Board opponent's island w/ more than 4 of your own crew!
+Pacifist
+Reach zone 4 without killing any opponent crewmembers!
+Core Technician
+Buy a tuning crystal from a Sylph technician!
+options
+tips and tricks
+Press and hold the pause button to set the game speed. Slow motion and fast-forward speeds available! You can even rewind!
+Build an infirmary to heal your crew!
+In the construction menu, the up/down buttons scroll through categories: defenses, weapons, workshops, power, misc.
+On the sky chart, you can press SELECT to plot a course! Press SELECT again to finish drawing.
+Use bulkhead doors to protect your power-cores against goblins!
+Overwhelmed by goblins? Try building some repair drones!
+You can assign groups of weapons to hotkeys! Press and hold start for more options!
+The Glossary, found on the title screen extras menu, describes all structures in the game!
+Raid and plunder castles for extra resources!
+If you lose a power-core, systems may shut down til you rebalance power.
+For more help, scroll right on the title screen and open the tutorial viewer!
+Objective: Defeat the Storm King! Build up your castle until you're strong enough, then enter the storm!
+Stuck on the world map? Storm catching up to you? You can increase your movement range by building a radar...
+filters
+requires workshop
+requires manufactory
+takes ion damage
+highly flammable
+not constructible
+human exclusive
+goblin exclusive
+sylph exclusive
+You don't have any DLC installed!
+hold A to erase!
+drones
+attacks
+appendix
+(requires workshop)
+(requires manufactory)
+(not constructible)
+(human only)
+(sylph only)
+(goblin only)
+power outage!
+castle may be friendly!
+out of pauses!
+block is powered off!
+cannot divert power from this!
+rebooting from powerdown...
+Beginner mode: auto-rewind:
+Try again? (lives: x%)
+Reset the game to factory settings? Press B to cancel. Press A five times while holding select to continue.
+Welcome! <j:datacarts_flattened> Here you'll find your collection of data cartridges from your adventures! Cartridges are the main way of storing information across SKYLAND! See how many you can find...
+Beep... collating... Welcome back! <B:0><j:datacarts_flattened> <B:0> Find any new cartridges lately?
+ found at 
+<c:Milo:5>Hey! Captain! <s:3>. . . <s:0>Come on, wake up!    . . . What!? Don't you remember me? I'm Milo, one of your crew! <d:1000>That's OK... anyway, there's a storm at our backs, and it's pushing us into hostile territory! Come to the window and I'll show you what I mean<t:0>!
+The Storm King's stronghold disintegrates... the dark clouds clear, bringing calm to SKYLAND once again! <d:1000>T<d:1000>H<d:1000>E <d:1000>E<d:1000>N<d:1000>D<d:500>.<d:500>.<d:500>.
+session connecting...
+Failed to connect to multiplayer peer!
+LAN host
+LAN client
+Broadcasting availability...
+Searching for hosts...
+your username:
+Found hosts:
+The system will now enter a low-power mode. Press L+R+SELECT to wake!
+The system will now accept software updates from another Game Boy Advance console. If you have a SKYLAND software update ROM, or an e-Reader card, connect a link cable to install updates. Press A when ready...
+WARNING: Gravitational collapse detected!!!
+The isle imploded!
+Locked! Why not try out the regular macrocosm mode for a bit!
+terrain size?
+Error! Island has too many blocks to compress into a legible QR code! Sorry, this is a technical limitation, not much can be done, other than reducing the number of blocks in your island.
+WARNING: Your island is pretty big, and the resulting QR code does not fit on-screen except when using 1-pixel-per-block. We highly recommended that you reduce the number of blocks on your island, as you may have trouble scanning the QR code (Hint: If you are using Android, you may need to scan with Google Lens).
+The Nintendo DS does not have a Game Boy Advance Link Port, sorry!
+Connect two GBA consoles by plugging the 1p end of a link cable into the first device, and the 2p end of the link cable into the second device. When both devices display the following white screen, press START to connect.
+ (showdown)
+ai thinking...
+if you can jump, you must!
+% wins!
+jump again!
+Name crewmember:
+ENTER: submit
+You've just loaded a saved game. With permadeath enabled, each adventure mode save may only be restored once before saving again. Remember to save before turning off the game!
+Tip: You can also move blocks by holding B over an empty space. See the "Moving Blocks" tutorial for more advanced features!
+Tip: You may also change the game speed by pressing and holding the pause (left shoulder) button. See the "Game Speed" tutorial for more help!
+Tip: The SELECT menu lists extra features not always available elsewhere. Try SELECTing different things to access more options!
+ok
+don't show again
+retry
+newgame
+continue
+generate again?
+view interior
+view exterior
+move blocks
+move crewmember
+name crewmember
+stop firing
+set target
+salvage
+set game speed
+unpause
+build
+back
+spook bird
+describe block
+edit flag
+crewmember icon
+upgrade block
+pin crewmember
+unpin crewmember
+power-on
+power-off
+divert power
+show minimap
+hide minimap
+select all
+crewmember info
+drone info
+eight bells
+resize bridge
+describe flag
+show ping
+hide ping
+inspect
+-- Drone Service Log --
+technician's notes:
+-- Crewmember Passport --
+--  Crewmember Report  --
+Battles
+Vanquished
+Dmg. Repaired
+Steps Taken
+Fires Quenched
+Fav. Room:
+Fav.:
+setup target queue (%/%):
+choose flag:
+colonial
+old empire
+second empire
+marauder
+goblin horde
+sylph
+merchant
+banana
+upgrade to %? 
+upgrade requires manufactory!
+upgrade requires workshop!
+SEL: presets
+START: flood
+ignite?
+THE END...
+flag
+% flag
+Exit Skyland?
+Leave
+Stay
+Select a language:

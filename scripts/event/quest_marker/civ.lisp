@@ -1,0 +1,67 @@
+;;;
+;;; quest_marker/civ.lisp
+;;;
+
+(tr-bind-current)
+
+(dialog (tr "You arrive at the location that the orphan boy marked on your map. <B:0> ")
+        "<b:/scripts/data/img/ornate.img.bin>"
+        (tr "As you approach, an advanced walled city emerges from the clouds. Its gleaming canals and skillful stonework shimmer with a brilliant light..."))
+
+
+(opponent-init 9 'neutral)
+
+(island-configure
+ (opponent)
+ '((bronze-hull 0 14) (forcefield 0 12) (forcefield* 0 13) (forcefield* 0 9) (forcefield 0 10) (forcefield 0 11) (forcefield* 1 8) (bronze-hull 1 12) (water-source 1 13) (water-source 1 14) (forcefield 1 7) (shrubbery 1 11) (masonry 2 13 0) (masonry 2 12 0) (forcefield 2 7) (masonry 2 14 0) (bronze-hull 2 11) (water-source 3 14) (masonry 3 13 3) (war-engine 3 9) (forcefield 3 7) (forcefield 4 7) (code 4 14) (masonry 4 13 3) (masonry 5 13 3) (water-source 5 14) (forcefield 5 7) (lemon-tree 6 9) (masonry 6 13 0) (forcefield 6 7) (masonry 6 12 0) (bronze-hull 6 11) (masonry 6 14 0) (forcefield 7 7) (water-source 7 13) (forcefield* 7 8) (water-source 7 14) (forcefield 8 10) (forcefield 8 11) (forcefield 8 12) (forcefield* 8 13) (bronze-hull 8 14) (forcefield* 8 9)))
+
+(secret 4 14 (tr "Because they're highly reclusive and technologically advanced, many myths exist about the Sylph. But they're only human..."))
+
+(flag-show (opponent) flag-id-sylph)
+
+
+(let ((id (lookup 6 qvar))
+      (boy nil))
+
+  (map (lambda (chr)
+         (if (equal id (lookup 'id (cddr chr)))
+             (setq boy true)))
+       (chrs (player)))
+
+  (if boy
+      (defn on-converge ()
+        (setq on-converge nil)
+        (dialog-sequence
+         "<c:Sylph:21><S:1>Hello, traveller..."
+         "<c:Orphan Boy:26><S:1>Oh!!! I'm home at last!"
+         "<c:Sylph:21><S:1>Oh! What have we here?!"
+         (lambda ()
+           (map (lambda (chr)
+                  (if (equal id (lookup 'id (cddr chr)))
+                      (chr-del (player) (car chr) (cadr chr))))
+                (chrs (player)))
+           (coins-add 2000)
+           (adventure-log-add 55 nil))
+         (tr "The orphan boy returned to his home!")
+         (tr "<c:Sylph:21>Hello, traveller...<B:0> I am very grateful to you for bringing him back! ...")
+         (lambda()
+           (on-timeout 500 'fut)
+           (defn fut ()
+                  (sound "bell")
+                  (sound "thunder_close_1")
+                  (effect "lightning" 0 0)
+                  (opponent-reset)
+                  (wg-storm-frontier-set (max (list (- (wg-storm-frontier) 3) 1)))
+
+                  (on-timeout 1000 'fut)
+
+                  (defn fut ()
+                    (dialog (tr "A flash of resplendent light emanates from the city... <B:0> the approaching storm clouds recede far into the horizon... <B:0> The Sylph castle seems to have also transported some strange block onto your island... <B:0> Where do you want to place it?"))
+                    (unbind 'fut)
+                    (defn on-dialog-closed ()
+                      (place-new-block 'amplifier (tr "Place amplifier:"))
+                      (exit)))))))
+
+    (defn on-converge ()
+      (dialog (tr "Despite multiple attempts to contact the city, the inhabitants are unresponsive. It's too bad the child isn't aboard your island anymore, maybe he'd know what this was all about..."))
+      (exit))))

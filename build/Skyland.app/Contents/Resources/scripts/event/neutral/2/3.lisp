@@ -1,0 +1,93 @@
+;;;
+;;; neutral/2/3.lisp
+;;;
+
+(tr-bind-current)
+
+
+(dialog (tr "A small fortress hurtles through the air, with goblins in pursuit. The captain calls for help..."))
+
+
+(opponent-init 9 'neutral)
+
+
+(island-configure
+ (opponent)
+ '((power-core 3 13)
+   (power-core 3 11)
+   (decimator 0 13)
+   (plundered-room 5 13)
+   (plundered-room 5 11)
+   (plundered-room 6 13)
+   (hull 8 14)
+   (hull 8 13)
+   (hull 8 12)))
+
+(chr-new (opponent) 2 14 'neutral 0)
+
+
+(set-temp 'dec-cost 1500)
+(set-temp 'dec-discount (floor (/ dec-cost 2)))
+
+
+(defn/temp hide-evidence? ()
+  (dialog (format (tr "<c:Captain:7>Look, those goblins are getting closer... <B:0> Tell you what - pay me %@ instead of %@, and help me destroy the evidence that I was ever here. <B:0> They'll assume YOU stole it from them directly. Deal?")
+                  dec-discount
+                  dec-cost))
+  (dialog-opts-reset)
+  (dialog-opts-push (format (tr "Hide evidence (%@).") dec-discount)
+                    (lambda ()
+                      (setq dec-cost dec-discount)
+                      (on-dialog-accepted)
+                      (push-pending-event (+ 1 (choice 2))
+                                          "/scripts/event/hostile/dec-revenge.lisp")))
+  (dialog-opts-push (format (tr "Pay %@…") dec-cost) on-dialog-accepted)
+  (dialog-opts-push (tr "No thanks.") on-dialog-declined))
+
+
+(defn on-converge ()
+  (dialog (format (tr "<c:Captain:7>I managed to steal this decimator from some goblins, but they're catching up to me! I know... I could sell you the weapon! I'll install it on your island for %@...")
+                  dec-cost))
+  (setq on-converge nil)
+  (dialog-opts-reset)
+  (dialog-opts-push (format (tr "Here's %@…") dec-cost) on-dialog-accepted)
+  (dialog-opts-push (tr "Can I have a discount?") hide-evidence?)
+  (dialog-opts-push (tr "No thanks.") on-dialog-declined))
+
+
+(setq on-dialog-declined exit)
+
+
+(defn on-dialog-accepted ()
+  (if (bound? 'fut) (unbind 'fut))
+
+  (if (< (coins) dec-cost)
+      (progn
+        (dialog (format (tr "<c:Captain:7>Sorry, I went to all this trouble, I really can't sell you this tech for less than %@. Do you want to salvage some stuff to come up with the funds? I'll check back in in 15 seconds?")
+                        dec-cost))
+        (dialog-setup-y/n)
+        (let ((f (this)))
+          (defn fut ()
+            (if (> (coins) 1499)
+                (progn
+                  (dialog (tr "<c:captain:7>Seems like you have enough now!"))
+                  (setq on-dialog-closed f))
+              (f))))
+        (setq on-dialog-accepted (lambda () (on-timeout 12000 'fut)))
+        (setq on-dialog-declined (lambda () (unbind 'fut) (exit))))
+    (progn
+      (coins-add (* -1 dec-cost))
+
+      (alloc-space 'decimator)
+
+      (sel-input
+       'decimator
+       (tr "Place weapon where? (2x2)")
+       (lambda (isle x y)
+         (room-new (player) (list 'decimator x y))
+         (room-del (opponent) 0 13)
+         (dialog (tr "<c:Captain:7> OK, all finished! The weapon recharges quite slowly, but nothing's more destructive! You need to move one of your crew into the weapon, though, or it won't recharge."))
+         (adventure-log-add 44 '())
+
+         (setq on-dialog-closed '())
+         (exit))))))

@@ -1,0 +1,674 @@
+diff --git a/scripts/config/controller_setup.lisp b/scripts/config/controller_setup.lisp
+index 20e571d9..ced3f081 100644
+--- a/scripts/config/controller_setup.lisp
++++ b/scripts/config/controller_setup.lisp
+@@ -29,12 +29,36 @@
+                       (show-opts))))
+ 
+ 
++(defn/temp edit-setting (name val)
++  (let ((s (settings-load)))
++    (let ((old (assoc name s)))
++      (setq s (if old
++                  (replace s (equalto? old) (cons name val))
++                  (cons (cons name val) s)))
++      (settings-save s))))
++
++
+ (defn/temp show-opts ()
+   (dialog-opts-reset)
+   (dialog "What would you like to do?")
+ 
+-  (if (not (equal (device-info 'name) "GameboyAdvance"))
+-      (setup-keypad-opts))
++  (when (not (equal (device-info 'name) "GameboyAdvance"))
++    (setup-keypad-opts)
++
++    (let ((lighting (lookup 'lighting (settings-load))))
++      (dialog-opts-push (if (equal lighting "on")
++                            "Disable Lighting Effects"
++                            "Enable Lighting Effects")
++                        (lambda ()
++                          (setq lighting (if (equal lighting "on") "off" "on"))
++                          (edit-setting 'lighting lighting)
++                          (dialog "Dynamic lighting graphical effects "
++                                  (if (equal lighting "on")
++                                      "enabled!"
++                                      "disabled!"))
++                          (defn on-dialog-closed ()
++                            (setq on-dialog-closed nil)
++                            (show-opts))))))
+ 
+   (let ((rumble (lookup 'rumble (settings-load))))
+     (dialog-opts-push (if (equal rumble "on")
+@@ -42,12 +66,7 @@
+                           "Enable Rumble")
+                       (lambda ()
+                         (setq rumble (if (equal rumble "on") "off" "on"))
+-
+-                        (let ((s (settings-load)))
+-                          (let ((old (assoc 'rumble s)))
+-                            (setq s (replace s (equalto? old) (cons 'rumble rumble)))
+-                            (settings-save s)))
+-
++                        (edit-setting 'rumble rumble)
+                         (dialog "Rumble "
+                                 (if (equal rumble "on")
+                                     "enabled!"
+diff --git a/scripts/config/settings.lisp b/scripts/config/settings.lisp
+index 64c66cd0..1123457f 100644
+--- a/scripts/config/settings.lisp
++++ b/scripts/config/settings.lisp
+@@ -1,5 +1,6 @@
+ '((color-profile . nil)
+   (rumble . "on")
++  (lighting . "off")
+   ;; NOTE: key mappings for desktop SDL port. See SDL library documentation for
+   ;; scancode strings.
+   (key_action1 . "X")
+diff --git a/source/skyland/entity.hpp b/source/skyland/entity.hpp
+index de6376be..1dee5c45 100644
+--- a/source/skyland/entity.hpp
++++ b/source/skyland/entity.hpp
+@@ -144,6 +144,11 @@ public:
+     }
+ 
+ 
++    virtual void project_glow()
++    {
++    }
++
++
+ protected:
+     Sprite sprite_;
+     HitBox hitbox_;
+diff --git a/source/skyland/entity/explosion/explosion.cpp b/source/skyland/entity/explosion/explosion.cpp
+index 15db5864..68a20c64 100644
+--- a/source/skyland/entity/explosion/explosion.cpp
++++ b/source/skyland/entity/explosion/explosion.cpp
+@@ -91,6 +91,17 @@ void Explosion::update(Time delta)
+ 
+ 
+ 
++void Explosion::project_glow()
++{
++    APP.environment().render_glow_effect(sprite_.get_position(),
++                                         50 +
++                                             rng::choice<8>(rng::utility_state),
++                                         ColorConstant::aerospace_orange,
++                                         48);
++}
++
++
++
+ static const int exp_flash_index_seq[] = {52, 53, 54, 55, 56, 50, 24};
+ 
+ 
+diff --git a/source/skyland/entity/explosion/explosion.hpp b/source/skyland/entity/explosion/explosion.hpp
+index 43805422..56a70d4a 100644
+--- a/source/skyland/entity/explosion/explosion.hpp
++++ b/source/skyland/entity/explosion/explosion.hpp
+@@ -82,6 +82,8 @@ public:
+     }
+ 
+ 
++    void project_glow() override;
++
+ private:
+     Time timer_ = 0;
+ };
+diff --git a/source/skyland/entity/explosion/explosion2.hpp b/source/skyland/entity/explosion/explosion2.hpp
+index 8c1e86e2..ff25124c 100644
+--- a/source/skyland/entity/explosion/explosion2.hpp
++++ b/source/skyland/entity/explosion/explosion2.hpp
+@@ -138,6 +138,16 @@ public:
+     }
+ 
+ 
++    void project_glow() override
++    {
++        APP.environment().render_glow_effect(
++            sprite_.get_position(),
++            50 + rng::choice<8>(rng::utility_state),
++            ColorConstant::aerospace_orange,
++            40);
++    }
++
++
+ private:
+     Time timer_ = 0;
+     Vec2<Fixnum> speed_;
+diff --git a/source/skyland/entity/explosion/explosion3.hpp b/source/skyland/entity/explosion/explosion3.hpp
+index 077e6362..acf7a187 100644
+--- a/source/skyland/entity/explosion/explosion3.hpp
++++ b/source/skyland/entity/explosion/explosion3.hpp
+@@ -117,6 +117,16 @@ public:
+     }
+ 
+ 
++    void project_glow() override
++    {
++        APP.environment().render_glow_effect(
++            sprite_.get_position(),
++            50 + rng::choice<8>(rng::utility_state),
++            ColorConstant::aerospace_orange,
++            48);
++    }
++
++
+ private:
+     Time timer_ = 0;
+     Vec2<Fixnum> speed_;
+diff --git a/source/skyland/entity/projectile/arcBolt.cpp b/source/skyland/entity/projectile/arcBolt.cpp
+index 46685476..1ce5e15b 100644
+--- a/source/skyland/entity/projectile/arcBolt.cpp
++++ b/source/skyland/entity/projectile/arcBolt.cpp
+@@ -280,4 +280,15 @@ void ArcBolt::destroy(bool explosion)
+ 
+ 
+ 
++void ArcBolt::project_glow()
++{
++    APP.environment().render_glow_effect(sprite_.get_position(),
++                                         50 +
++                                             rng::choice<8>(rng::utility_state),
++                                         custom_color(0xafe3f2),
++                                         30);
++}
++
++
++
+ } // namespace skyland
+diff --git a/source/skyland/entity/projectile/arcBolt.hpp b/source/skyland/entity/projectile/arcBolt.hpp
+index 66c706e0..4cf0e4d6 100644
+--- a/source/skyland/entity/projectile/arcBolt.hpp
++++ b/source/skyland/entity/projectile/arcBolt.hpp
+@@ -62,6 +62,9 @@ public:
+     }
+ 
+ 
++    void project_glow() override;
++
++
+ private:
+     void record_destroyed();
+     void destroy(bool explosion) override;
+diff --git a/source/skyland/entity/projectile/beam.cpp b/source/skyland/entity/projectile/beam.cpp
+index 5b255d87..e2ba6d5f 100644
+--- a/source/skyland/entity/projectile/beam.cpp
++++ b/source/skyland/entity/projectile/beam.cpp
+@@ -258,4 +258,15 @@ void Beam::on_collision(Entity& entity)
+ 
+ 
+ 
++void Beam::project_glow()
++{
++    APP.environment().render_glow_effect(sprite_.get_position(),
++                                         50 +
++                                             rng::choice<8>(rng::utility_state),
++                                         custom_color(0xafe3f2),
++                                         30);
++}
++
++
++
+ } // namespace skyland
+diff --git a/source/skyland/entity/projectile/beam.hpp b/source/skyland/entity/projectile/beam.hpp
+index b1b0ea11..c3d8b219 100644
+--- a/source/skyland/entity/projectile/beam.hpp
++++ b/source/skyland/entity/projectile/beam.hpp
+@@ -70,6 +70,9 @@ public:
+     }
+ 
+ 
++    void project_glow() override;
++
++
+ private:
+     void destroy(bool explosion) override;
+ 
+diff --git a/source/skyland/entity/projectile/fireBolt.cpp b/source/skyland/entity/projectile/fireBolt.cpp
+index fbb992c7..5be7faeb 100644
+--- a/source/skyland/entity/projectile/fireBolt.cpp
++++ b/source/skyland/entity/projectile/fireBolt.cpp
+@@ -237,4 +237,15 @@ void FireBolt::on_collision(Entity& entity)
+ 
+ 
+ 
++void FireBolt::project_glow()
++{
++    APP.environment().render_glow_effect(sprite_.get_position(),
++                                         50 +
++                                             rng::choice<8>(rng::utility_state),
++                                         ColorConstant::aerospace_orange,
++                                         40);
++}
++
++
++
+ } // namespace skyland
+diff --git a/source/skyland/entity/projectile/fireBolt.hpp b/source/skyland/entity/projectile/fireBolt.hpp
+index f5539c02..046748b6 100644
+--- a/source/skyland/entity/projectile/fireBolt.hpp
++++ b/source/skyland/entity/projectile/fireBolt.hpp
+@@ -58,6 +58,9 @@ public:
+     void on_collision(Entity&) override;
+ 
+ 
++    void project_glow() override;
++
++
+ private:
+     void record_destroyed();
+     void destroy(bool explosion) override;
+diff --git a/source/skyland/entity/projectile/incineratorBolt.cpp b/source/skyland/entity/projectile/incineratorBolt.cpp
+index b945e334..4742143a 100644
+--- a/source/skyland/entity/projectile/incineratorBolt.cpp
++++ b/source/skyland/entity/projectile/incineratorBolt.cpp
+@@ -270,4 +270,15 @@ void IncineratorBolt::on_collision(Entity& entity)
+ 
+ 
+ 
++void IncineratorBolt::project_glow()
++{
++    APP.environment().render_glow_effect(sprite_.get_position(),
++                                         50 +
++                                             rng::choice<8>(rng::utility_state),
++                                         ColorConstant::aerospace_orange,
++                                         80);
++}
++
++
++
+ } // namespace skyland
+diff --git a/source/skyland/entity/projectile/incineratorBolt.hpp b/source/skyland/entity/projectile/incineratorBolt.hpp
+index c8c0eec3..aa92ca2b 100644
+--- a/source/skyland/entity/projectile/incineratorBolt.hpp
++++ b/source/skyland/entity/projectile/incineratorBolt.hpp
+@@ -56,6 +56,9 @@ public:
+     void on_collision(Entity&) override;
+ 
+ 
++    void project_glow() override;
++
++
+ private:
+     void destroy(bool explosion) override;
+ 
+diff --git a/source/skyland/island.cpp b/source/skyland/island.cpp
+index 85625b0a..25fb3c8e 100644
+--- a/source/skyland/island.cpp
++++ b/source/skyland/island.cpp
+@@ -718,7 +718,19 @@ void Island::FireState::display(Island& island)
+     for (int x = 0; x < 16; ++x) {
+         for (int y = 0; y < 16; ++y) {
+             if (positions_.get(x, y)) {
+-                batch->push_back({o.x + x * 16, o.y + y * 16 - 16});
++                auto fx = o.x + x * 16;
++                auto fy = o.y + y * 16 - 16;
++                batch->push_back({fx, fy});
++
++                APP.environment().render_glow_effect(
++                    {
++                        Fixnum::from_integer(fx + 8),
++                        Fixnum::from_integer(fy + 8 + 16),
++                    },
++                    50 + rng::choice<8>(rng::utility_state),
++                    ColorConstant::aerospace_orange,
++                    95);
++
+             }
+         }
+     }
+diff --git a/source/skyland/rooms/particleLance.cpp b/source/skyland/rooms/particleLance.cpp
+index 03d3fd18..1a16f289 100644
+--- a/source/skyland/rooms/particleLance.cpp
++++ b/source/skyland/rooms/particleLance.cpp
+@@ -209,12 +209,32 @@ void ParticleLance::display(Platform::Screen& screen)
+             Fixnum::from_integer(APP.opponent_island()->terrain().size() * 16);
+     }
+ 
++    const auto cached_dist = dist;
++    const auto cached_pos = pos;
+     while (dist >= 16.0_fixed) {
+         spr.set_position(pos);
+         screen.draw(spr);
+         pos.x += 16.0_fixed;
+         dist -= 16.0_fixed;
+     }
++
++    if (PLATFORM.get_extensions().draw_point_light) {
++        dist = cached_dist;
++        pos = cached_pos;
++        while (dist >= 16.0_fixed) {
++            spr.set_position(pos);
++            APP.environment().render_glow_effect(
++                {
++                    pos.x + 8.0_fixed,
++                    pos.y + 8.0_fixed,
++                },
++                50 + rng::choice<8>(rng::utility_state),
++                custom_color(0xafe3f2),
++                40);
++            pos.x += 16.0_fixed;
++            dist -= 16.0_fixed;
++        }
++    }
+ }
+ 
+ 
+diff --git a/source/skyland/scene/worldScene.cpp b/source/skyland/scene/worldScene.cpp
+index fabdc11b..8f068132 100644
+--- a/source/skyland/scene/worldScene.cpp
++++ b/source/skyland/scene/worldScene.cpp
+@@ -424,6 +424,19 @@ void WorldScene::display()
+     for (auto& bird : APP.birds()) {
+         PLATFORM.screen().draw(bird->sprite());
+     }
++
++    auto project_glow = [&](auto& entity_list) {
++        for (auto& entity : entity_list) {
++            entity->project_glow();
++        }
++    };
++
++    if (PLATFORM.get_extensions().draw_point_light) {
++        project_glow(APP.effects());
++        project_glow(APP.player_island().projectiles());
++        APP.with_opponent_island(
++            [&](Island& isle) { project_glow(isle.projectiles()); });
++    }
+ }
+ 
+ 
+diff --git a/source/skyland/settings.cpp b/source/skyland/settings.cpp
+index ce4c0a5f..73b47f56 100644
+--- a/source/skyland/settings.cpp
++++ b/source/skyland/settings.cpp
+@@ -112,6 +112,10 @@ void apply()
+         state_bit_store(StateBit::rumble_enabled, true);
+     }
+ 
++    if (settings.get("lighting") == "on") {
++        state_bit_store(StateBit::lighting_enabled, true);
++    }
++
+     if (auto map = PLATFORM.get_extensions().map_key) {
+ #define GET_S(STR) (settings.get(STR).c_str())
+         map(Key::action_1, GET_S("key_action1"));
+diff --git a/source/skyland/stateBit.hpp b/source/skyland/stateBit.hpp
+index 0587e358..002fb561 100644
+--- a/source/skyland/stateBit.hpp
++++ b/source/skyland/stateBit.hpp
+@@ -36,6 +36,7 @@ enum class StateBit {
+     verbose_boot,
+     minimap_on,
+     rumble_enabled,
++    lighting_enabled,
+     count,
+ };
+ 
+diff --git a/source/skyland/weather/blizzard.cpp b/source/skyland/weather/blizzard.cpp
+index 356f81d6..e275c9f6 100644
+--- a/source/skyland/weather/blizzard.cpp
++++ b/source/skyland/weather/blizzard.cpp
+@@ -191,4 +191,11 @@ void Blizzard::display()
+ 
+ 
+ 
++Float Blizzard::modulate_glow_amount()
++{
++    return 0.3f;
++}
++
++
++
+ } // namespace skyland::weather
+diff --git a/source/skyland/weather/blizzard.hpp b/source/skyland/weather/blizzard.hpp
+index f60f73b7..5d3244fe 100644
+--- a/source/skyland/weather/blizzard.hpp
++++ b/source/skyland/weather/blizzard.hpp
+@@ -37,6 +37,9 @@ public:
+     static Platform::Screen::Shader get_shader();
+ 
+ 
++    Float modulate_glow_amount() override;
++
++
+     bool is_cold() const override
+     {
+         return true;
+diff --git a/source/skyland/weather/clearSkies.cpp b/source/skyland/weather/clearSkies.cpp
+index ccd87068..acceff4b 100644
+--- a/source/skyland/weather/clearSkies.cpp
++++ b/source/skyland/weather/clearSkies.cpp
+@@ -9,6 +9,13 @@ namespace skyland::weather
+ 
+ 
+ 
++Float ClearSkies::modulate_glow_amount()
++{
++    return 0.2f;
++}
++
++
++
+ ColorConstant ClearSkies::fadein_colorize_tone() const
+ {
+     return custom_color(0x071b2d);
+diff --git a/source/skyland/weather/environment.cpp b/source/skyland/weather/environment.cpp
+index 79e3ea6e..5a335126 100644
+--- a/source/skyland/weather/environment.cpp
++++ b/source/skyland/weather/environment.cpp
+@@ -62,6 +62,30 @@ Conf::String Environment::ambiance() const
+ 
+ 
+ 
++void Environment::render_glow_effect(const Vec2<Fixnum>& pos,
++                                     int radius,
++                                     ColorConstant color,
++                                     u8 intensity)
++{
++    if (state_bit_load(StateBit::lighting_enabled)) {
++        PLATFORM_EXTENSION(draw_point_light,
++                           pos.x,
++                           pos.y,
++                           radius,
++                           color,
++                           intensity * modulate_glow_amount());
++    }
++}
++
++
++
++Float Environment::modulate_glow_amount()
++{
++    return 1.f;
++}
++
++
++
+ } // namespace skyland::weather
+ 
+ 
+diff --git a/source/skyland/weather/environment.hpp b/source/skyland/weather/environment.hpp
+index 1f584149..456e21f0 100644
+--- a/source/skyland/weather/environment.hpp
++++ b/source/skyland/weather/environment.hpp
+@@ -109,6 +109,15 @@ public:
+     }
+ 
+ 
++    void render_glow_effect(const Vec2<Fixnum>& pos,
++                            int radius,
++                            ColorConstant color,
++                            u8 intensity);
++
++
++    virtual Float modulate_glow_amount();
++
++
+     Conf::String read_conf(const char* field) const;
+     Conf::String music() const;
+     Conf::String ambiance() const;
+@@ -184,6 +193,9 @@ public:
+     }
+ 
+ 
++    Float modulate_glow_amount() override;
++
++
+     virtual EnvironmentId id() const override;
+ 
+ 
+diff --git a/source/skyland/weather/night.cpp b/source/skyland/weather/night.cpp
+index 7d62c348..ad1d755c 100644
+--- a/source/skyland/weather/night.cpp
++++ b/source/skyland/weather/night.cpp
+@@ -18,6 +18,13 @@ namespace skyland::weather
+ 
+ 
+ 
++Float Night::modulate_glow_amount()
++{
++    return 1.5f;
++}
++
++
++
+ void Night::display()
+ {
+ }
+diff --git a/source/skyland/weather/night.hpp b/source/skyland/weather/night.hpp
+index bb024097..07745bfd 100644
+--- a/source/skyland/weather/night.hpp
++++ b/source/skyland/weather/night.hpp
+@@ -44,6 +44,9 @@ public:
+ 
+ 
+     static Platform::Screen::Shader get_shader();
++
++
++    Float modulate_glow_amount() override;
+ };
+ 
+ 
+diff --git a/source/skyland/weather/slightlyOvercast.cpp b/source/skyland/weather/slightlyOvercast.cpp
+index f81ad685..83d9f2ab 100644
+--- a/source/skyland/weather/slightlyOvercast.cpp
++++ b/source/skyland/weather/slightlyOvercast.cpp
+@@ -19,6 +19,13 @@ namespace skyland::weather
+ 
+ 
+ 
++Float SlightlyOvercast::modulate_glow_amount()
++{
++    return 0.25f;
++}
++
++
++
+ SlightlyOvercast::SlightlyOvercast() : state_("weather-state")
+ {
+     auto& s = *state_;
+diff --git a/source/skyland/weather/slightlyOvercast.hpp b/source/skyland/weather/slightlyOvercast.hpp
+index 6913e5a2..cfcd70a0 100644
+--- a/source/skyland/weather/slightlyOvercast.hpp
++++ b/source/skyland/weather/slightlyOvercast.hpp
+@@ -43,6 +43,9 @@ public:
+ 
+ 
+     void display() override;
++
++
++    Float modulate_glow_amount() override;
+ };
+ 
+ 
+diff --git a/source/skyland/weather/storm.cpp b/source/skyland/weather/storm.cpp
+index a95f15b6..a7b04a2d 100644
+--- a/source/skyland/weather/storm.cpp
++++ b/source/skyland/weather/storm.cpp
+@@ -319,6 +319,13 @@ void Storm::display()
+ 
+ 
+ 
++Float Storm::modulate_glow_amount()
++{
++    return 0.25f;
++}
++
++
++
+ Platform::Screen::Shader Storm::shader() const
+ {
+     return [](ShaderPalette palette, ColorConstant k, int arg, int index) {
+diff --git a/source/skyland/weather/storm.hpp b/source/skyland/weather/storm.hpp
+index 340e5cb2..730a1405 100644
+--- a/source/skyland/weather/storm.hpp
++++ b/source/skyland/weather/storm.hpp
+@@ -67,6 +67,9 @@ public:
+     }
+ 
+ 
++    Float modulate_glow_amount() override;
++
++
+     void update(Time delta) override;
+ 
+ 
+diff --git a/source/skyland/weather/typhoon.cpp b/source/skyland/weather/typhoon.cpp
+index 7e7ba42e..15a1e6b0 100644
+--- a/source/skyland/weather/typhoon.cpp
++++ b/source/skyland/weather/typhoon.cpp
+@@ -109,6 +109,13 @@ void Typhoon::rewind(Time delta)
+ 
+ 
+ 
++Float Typhoon::modulate_glow_amount()
++{
++    return 0.3f;
++}
++
++
++
+ void Typhoon::update(Time delta)
+ {
+     Storm::update(delta);
+diff --git a/source/skyland/weather/typhoon.hpp b/source/skyland/weather/typhoon.hpp
+index e22d7c94..62593143 100644
+--- a/source/skyland/weather/typhoon.hpp
++++ b/source/skyland/weather/typhoon.hpp
+@@ -48,6 +48,9 @@ public:
+     EnvironmentId id() const override;
+ 
+ 
++    Float modulate_glow_amount() override;
++
++
+ private:
+     enum class LightningState : u8 {
+         none,
+diff --git a/strings/commit_hash.txt b/strings/commit_hash.txt
+index f4a674e7..fd818a06 100644
+--- a/strings/commit_hash.txt
++++ b/strings/commit_hash.txt
+@@ -1 +1 @@
+-3651fc96
++844704ea
+diff --git a/strings/english.idf b/strings/english.idf
+index c2d8fcde..7e94201e 100644
+--- a/strings/english.idf
++++ b/strings/english.idf
+@@ -201,7 +201,7 @@ Data Carts
+ Macro Freebuild
+ Run Regression
+ Color Profiles
+-Device Setup
++Edit Settings
+ January,February,March,April,May,June,July,August,September,October,November,December,
+ Enable developer mode? Lets you run custom code, but highscores will not be recorded while enabled.
+ Developer mode successfully disabled!
+diff --git a/strings/english.idx b/strings/english.idx
+index 717c0a24..42ff8b11 100644
+Binary files a/strings/english.idx and b/strings/english.idx differ

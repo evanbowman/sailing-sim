@@ -1,0 +1,131 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+
+#include "skyland/room.hpp"
+#include "skyland/systemString.hpp"
+#include "skyland/types.hpp"
+
+
+
+namespace skyland
+{
+
+
+
+class Bulkhead final : public Room
+{
+public:
+    Bulkhead(Island* parent, const RoomCoord& position);
+
+
+    void update(Time delta) override;
+    void rewind(Time delta) override;
+
+
+    void rewind_enter_cold_boot() override;
+    void force_disable_cold_boot_impl() override;
+
+
+    static Category category()
+    {
+        return Category::passage;
+    }
+
+
+    void render_interior(App* app, TileId buffer[16][16]) override;
+    void render_exterior(App* app, TileId buffer[16][16]) override;
+
+
+    void plot_walkable_zones(bool matrix[16][16],
+                             Character* for_character) override;
+
+
+    static void format_description(StringBuffer<512>& buffer);
+
+
+    void ___rewind___finished_reload() override;
+
+
+    static ATP atp_value()
+    {
+        return 20.0_atp;
+    }
+
+
+    static Vec2<u8> size()
+    {
+        return {1, 2};
+    }
+
+
+    static const constexpr char* name()
+    {
+        return "bulkhead-door";
+    }
+
+
+    static SystemString ui_name()
+    {
+        return SystemString::block_bulkhead_door;
+    }
+
+
+    static Icon icon()
+    {
+        return 648;
+    }
+
+
+    static Icon unsel_icon()
+    {
+        return 632;
+    }
+
+
+    void set_open(bool open);
+
+
+    void on_powerchange() override;
+
+
+    bool allows_powerdown() override;
+
+
+    bool is_open() const
+    {
+        return open_;
+    }
+
+
+    static RoomProperties::Bitmask properties()
+    {
+        return RoomProperties::habitable |
+               RoomProperties::multiboot_compatible | RoomProperties::fireproof;
+    }
+
+
+    Time reload_time_remaining() const override
+    {
+        return boot_timer_;
+    }
+
+
+private:
+    Time boot_timer_ = 0;
+    bool open_ = true;
+    bool interior_visible_ = false;
+};
+
+
+
+} // namespace skyland

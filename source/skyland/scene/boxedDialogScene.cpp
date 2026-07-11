@@ -1,0 +1,1065 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+#include "boxedDialogScene.hpp"
+#include "graphics/overlay.hpp"
+#include "inspectP2Scene.hpp"
+#include "readyScene.hpp"
+#include "scriptHookScene.hpp"
+#include "selectTutorialScene.hpp"
+#include "skyland/scene_pool.hpp"
+#include "skyland/sharedVariable.hpp"
+#include "skyland/skyland.hpp"
+
+
+
+Platform::TextureCpMapper locale_texture_map();
+
+
+
+namespace skyland
+{
+
+
+
+BoxedDialogScene::BoxedDialogScene(DialogBuffer buffer)
+    : text_state_(buffer_.end()), data_(allocate<Data>("dialog-data"))
+{
+    utf8::scan(
+        [this](const utf8::Codepoint& cp, const char*, int) {
+            buffer_.push_back(cp);
+            return true;
+        },
+        buffer->c_str(),
+        strlen(buffer->c_str()));
+    buffer_.push_back('\0');
+    text_state_.current_word_ = buffer_.begin();
+    goto_tutorial_ = 0;
+    allow_fastforward_ = true;
+}
+
+
+
+void __draw_image(TileDesc start_tile,
+                  u16 start_x,
+                  u16 start_y,
+                  u16 width,
+                  u16 height,
+                  Layer layer);
+
+
+
+extern SharedVariable text_scroll_direction;
+
+
+
+const int y_start = 1;
+
+
+
+static bool punctuation_or_whitespace(char c)
+{
+    return (c == '!' or c == '\'' or c == ' ' or c == ',' or c == '?' or
+            c == '.');
+}
+
+
+
+void BoxedDialogScene::process_command()
+{
+    ++text_state_.current_word_;
+
+    const char c = *text_state_.current_word_;
+
+    ++text_state_.current_word_;
+
+    if (*text_state_.current_word_ not_eq ':') {
+        PLATFORM.fatal("invalid command format!");
+    }
+
+    ++text_state_.current_word_;
+
+    auto parse_command_str = [&] {
+        StringBuffer<64> str;
+        while (*text_state_.current_word_ not_eq ':' and
+               *text_state_.current_word_ not_eq '>') {
+            if (*text_state_.current_word_ == '\0') {
+                PLATFORM.fatal("Unexpected null byte in command sequence!");
+            }
+            utf8::Codepoint current = *text_state_.current_word_;
+            char encoded[5] = {};
+            memcpy(encoded, &current, 4);
+            str += encoded;
+            ++text_state_.current_word_;
+        }
+        ++text_state_.current_word_;
+        return str;
+    };
+
+    auto parse_command_int = [&] {
+        auto str = parse_command_str();
+        s32 result = 0;
+        for (u32 i = 0; i < str.length(); ++i) {
+            result = result * 10 + (str[i] - '0');
+        }
+        return result;
+    };
+
+    auto parse_command_noarg = [&] {
+        if (*text_state_.current_word_ not_eq '>') {
+            PLATFORM.fatal("invalid command format, expected >");
+        }
+
+        ++text_state_.current_word_;
+    };
+
+
+    switch (c) {
+    case '\0':
+        PLATFORM.fatal("Invalid null byte in command sequence!");
+
+    case 'S': {
+        conlang_ = parse_command_int();
+        break;
+    }
+
+    case 'a': {
+        auto anim = parse_command_str();
+        if (PLATFORM.device_name() not_eq "GameboyAdvance") {
+            // TODO: implement sprite text for desktop port!
+            break;
+        }
+        auto it = text_state_.current_word_;
+        StringBuffer<96> anim_text;
+        while (*it not_eq '\0' and not punctuation_or_whitespace(*it)) {
+            anim_text.push_back(*(it++));
+        }
+        data_->anim_text_.emplace_back(anim_text.c_str());
+        data_->anim_text_.back().position_absolute();
+        auto style = TextAnimation::none;
+        if (anim == "LAUGH") {
+            style = TextAnimation::laugh;
+        } else if (anim == "SHAKE") {
+            style = TextAnimation::shake;
+        } else if (anim == "WAVE") {
+            style = TextAnimation::wave;
+        } else if (anim == "TREMBLE") {
+            style = TextAnimation::tremble;
+        } else if (anim == "BOUNCE") {
+            style = TextAnimation::bounce;
+        }
+        data_->anim_style_.push_back(style);
+        data_->anim_ready_ = &data_->anim_text_.back();
+        data_->anim_ready_->hide();
+        break;
+    }
+
+    case 'c': {
+        auto str = parse_command_str();
+        data_->character_.name_ = str;
+        data_->character_.image_ = parse_command_int();
+
+        if (data_->character_.image_) {
+            auto st = calc_screen_tiles();
+
+            data_->character_name_text_.emplace(OverlayCoord{1, u8(st.y - 7)});
+
+            data_->character_name_text_->assign(
+                data_->character_.name_.c_str(),
+                Text::OptColors{
+                    {custom_color(0xf3ea55), custom_color(0x232390)}});
+
+            clear_textbox();
+        }
+        break;
+    }
+
+    case 's': {
+        text_state_.speed_ = parse_command_int();
+        break;
+    }
+
+    case 'f': {
+        PLATFORM.screen().schedule_fade(parse_command_int() / 100.f);
+        break;
+    }
+
+    case 'B': {
+        bool hard_break = parse_command_int();
+        if (hard_break) {
+            data_->character_ = {};
+        }
+        halt_text_ = true;
+        break;
+    }
+
+    case 'j': {
+        const auto bkg_name = parse_command_str();
+        PLATFORM.screen().set_shader(passthrough_shader);
+        PLATFORM.screen().set_view(View{});
+        APP.camera().emplace<Camera>();
+        for (int i = 0; i < 16; ++i) {
+            for (int j = 0; j < 16; ++j) {
+                PLATFORM.set_tile(Layer::map_0_ext, i, j, 0);
+                PLATFORM.set_tile(Layer::map_1_ext, i, j, 0);
+            }
+        }
+        for (int x = 0; x < 30; ++x) {
+            for (int y = 0; y < 2; ++y) {
+                PLATFORM.set_tile(Layer::overlay, x, y, 123);
+            }
+            PLATFORM.set_tile(Layer::overlay, x, 13, 123);
+            PLATFORM.set_tile(Layer::overlay, x, 19, 123);
+        }
+        PLATFORM.load_tile1_texture(bkg_name.c_str());
+        PLATFORM.set_scroll(Layer::map_1_ext, 0, 0);
+        __draw_image(1, 0, 2, 30, 14, Layer::map_1);
+
+        // Replace the textbox border with a tileset with an opaque dark
+        // background.
+        PLATFORM.load_overlay_chunk(83, 124, 8);
+        img_view_2_ = true;
+
+        int frames = 45;
+        for (int i = 0; i < frames; ++i) {
+            PLATFORM.screen().schedule_fade(1 - Float(i) / frames,
+                                            {ColorConstant::rich_black});
+            PLATFORM.input().poll();
+            PLATFORM.screen().clear();
+            PLATFORM.screen().display();
+            if (ambience_) {
+                if (not PLATFORM.speaker().is_sound_playing(ambience_)) {
+                    PLATFORM.speaker().play_sound(ambience_, 9);
+                }
+            }
+        }
+
+        break;
+    }
+
+    case 'b': {
+        const auto img_name = parse_command_str();
+        img_view_ = true;
+        show_coins_ = false;
+        int frames = 16;
+        for (int i = 0; i < frames; ++i) {
+            auto amt = Float(i / 2) / frames;
+            for (u8 x = 2; x < 28 * 2 * amt; ++x) {
+                for (u8 y = 1; y < 12; ++y) {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 82);
+                }
+            }
+            PLATFORM.screen().schedule_fade(
+                amt,
+                {.color = ColorConstant::rich_black, .include_sprites = false});
+            PLATFORM.input().poll();
+            PLATFORM.screen().clear();
+            parallax_background_task(nullptr);
+            PLATFORM.screen().display();
+        }
+        PLATFORM.screen().set_shader(passthrough_shader);
+        PLATFORM.load_sprite_texture(img_name.c_str());
+        PLATFORM.screen().set_shader(APP.environment().shader());
+        for (u8 x = 2; x < 28; ++x) {
+            for (u8 y = 1; y < 12; ++y) {
+                if (x == 2 or x == 27) {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 82);
+                } else if (y == 1) {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 93);
+                } else if (y == 11) {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 94);
+                } else {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 0);
+                }
+            }
+        }
+        break;
+    }
+
+    case 'd': {
+        text_state_.timer_ = -milliseconds(parse_command_int());
+        break;
+    }
+
+    case 'r': {
+        parse_command_noarg();
+        break;
+    }
+
+    case 't': {
+        goto_tutorial_ = 1 + parse_command_int();
+        break;
+    }
+
+    case 'm': {
+        PLATFORM.speaker().set_music_volume(parse_command_int());
+        break;
+    }
+
+
+    default:
+        PLATFORM.fatal(format("Invald command %", c).c_str());
+    }
+
+    while (*text_state_.current_word_ == ' ') {
+        ++text_state_.current_word_;
+    }
+}
+
+
+
+bool BoxedDialogScene::advance_text(Time delta, bool sfx)
+{
+    const auto delay = [&] {
+        switch (text_state_.speed_) {
+        default:
+        case 0:
+            return milliseconds(80);
+
+        case 1:
+            return milliseconds(160);
+
+        case 2:
+            return milliseconds(240);
+
+        case 3:
+            return milliseconds(320);
+        }
+    }();
+
+    text_state_.timer_ += delta;
+
+    const auto st = calc_screen_tiles();
+
+    if (text_state_.timer_ > delay) {
+        text_state_.timer_ = 0;
+
+        if (sfx) {
+            PLATFORM.speaker().play_sound("msg", 5);
+        }
+
+        if (text_state_.current_word_remaining_ == 0) {
+            while (*text_state_.current_word_ == ' ') {
+                text_state_.current_word_++;
+                if (text_state_.pos_ < st.x - 2) {
+                    text_state_.pos_ += 1;
+                }
+            }
+            while (*text_state_.current_word_ == '<') {
+                process_command();
+            }
+            if (halt_text_) {
+                halt_text_ = false;
+                return false;
+            }
+            if (text_state_.timer_ < 0) {
+                return true;
+            }
+            bool seen_char = false;
+            auto seek = text_state_.current_word_;
+            while (seek not_eq buffer_.end()) {
+                auto glyph = *seek;
+                if (glyph == ' ' or glyph == '<' or glyph == '\0') {
+                    break;
+                } else {
+                    seen_char = true;
+                    text_state_.current_word_remaining_++;
+                }
+                ++seek;
+            }
+
+            if (not seen_char and *text_state_.current_word_ == '\0') {
+                display_mode_ = DisplayMode::button_released_check2;
+                return true;
+            }
+        }
+
+        // At this point, we know the length of the next space-delimited word in
+        // the string. Now we can print stuff...
+
+        static const int character_graphics_width = 4;
+
+        const auto st = calc_screen_tiles();
+        static const auto margin_sum = 4;
+        const auto text_box_width = st.x - margin_sum;
+        const auto remaining =
+            ((text_box_width - text_state_.pos_) -
+             (text_state_.line_ == 0 ? 0 : 2)) -
+            (data_->character_.image_ ? character_graphics_width : 0);
+
+        if (text_state_.current_word_remaining_ > st.x) {
+            text_state_.current_word_remaining_ = remaining;
+        } else if (remaining < text_state_.current_word_remaining_) {
+            if (text_state_.line_ == 0) {
+                text_state_.line_++;
+                text_state_.pos_ = 0;
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        const auto cp = *text_state_.current_word_;
+
+        const auto mapping_info = locale_texture_map()(cp);
+
+        u16 t = 495; // bad glyph, FIXME: add a constant
+
+        if (mapping_info) {
+            auto current_char = *text_state_.current_word_;
+            if (conlang_ and not punctuation_or_whitespace(current_char)) {
+                auto c = current_char;
+                if (c < 'a') {
+                    c += 'a' - 'A';
+                }
+                t = (c - 'a') + 150;
+            } else {
+                t = PLATFORM.map_glyph(cp, *mapping_info);
+            }
+        }
+
+        const int y_offset = text_state_.line_ == 0 ? 4 + y_start : 2 + y_start;
+        int x_offset =
+            text_state_.pos_ + 2 +
+            (data_->character_.image_ ? character_graphics_width : 0);
+
+        if (text_scroll_direction == 1) {
+            x_offset = st.x - (text_state_.pos_ + 2);
+        }
+
+        const auto p_y = st.y - (y_offset);
+        if (not data_->anim_ready_ or
+            punctuation_or_whitespace(*text_state_.current_word_)) {
+            if (cp == '@') {
+                PLATFORM.set_tile(Layer::overlay, x_offset, p_y, 146);
+            } else if (cp == '*') {
+                PLATFORM.set_tile(Layer::overlay, x_offset, p_y, 149);
+            } else {
+                PLATFORM.set_tile(Layer::overlay, x_offset, p_y, t);
+            }
+        } else {
+            auto pos = data_->anim_ready_->position();
+            if (pos.x == 0.0_fixed and pos.y == 0.0_fixed) {
+                data_->anim_ready_->set_position(
+                    {Fixnum::from_integer(x_offset * 8),
+                     Fixnum::from_integer(p_y * 8)});
+            }
+            data_->anim_ready_->reveal_char();
+        }
+
+        text_state_.current_word_remaining_--;
+        if (not text_state_.current_word_remaining_) {
+            data_->anim_ready_ = nullptr;
+        }
+        text_state_.current_word_++;
+        text_state_.pos_++;
+
+        if (*text_state_.current_word_ == '\0') {
+            display_mode_ = DisplayMode::button_released_check2;
+        }
+    }
+
+    return true;
+}
+
+
+
+void BoxedDialogScene::clear_textbox()
+{
+    const auto st = calc_screen_tiles();
+
+    for (int x = 1; x < st.x - 1; ++x) {
+        PLATFORM.set_tile(Layer::overlay, x, st.y - (5 + y_start), 84);
+        PLATFORM.set_tile(Layer::overlay, x, st.y - (4 + y_start), 82);
+        PLATFORM.set_tile(Layer::overlay, x, st.y - (3 + y_start), 82);
+        PLATFORM.set_tile(Layer::overlay, x, st.y - (2 + y_start), 82);
+        PLATFORM.set_tile(Layer::overlay, x, st.y - (1 + y_start), 85);
+    }
+
+    PLATFORM.set_tile(Layer::overlay, 0, st.y - (4 + y_start), 89);
+    PLATFORM.set_tile(Layer::overlay, 0, st.y - (3 + y_start), 89);
+    PLATFORM.set_tile(Layer::overlay, 0, st.y - (2 + y_start), 89);
+
+    PLATFORM.set_tile(Layer::overlay, st.x - 1, st.y - (4 + y_start), 88);
+    PLATFORM.set_tile(Layer::overlay, st.x - 1, st.y - (3 + y_start), 88);
+    PLATFORM.set_tile(Layer::overlay, st.x - 1, st.y - (2 + y_start), 88);
+
+    PLATFORM.set_tile(Layer::overlay, 0, st.y - (5 + y_start), 83);
+    PLATFORM.set_tile(Layer::overlay, 0, st.y - (1 + y_start), 90);
+    PLATFORM.set_tile(Layer::overlay, st.x - 1, st.y - (5 + y_start), 87);
+    PLATFORM.set_tile(Layer::overlay, st.x - 1, st.y - (1 + y_start), 86);
+
+    text_state_.line_ = 0;
+    text_state_.pos_ = 0;
+
+    if (data_->character_.image_) {
+        const auto img = (data_->character_.image_ - 1) * 16;
+        PLATFORM.load_overlay_chunk(184, img, 16, "character_art");
+        draw_image(184, 1, st.y - 6, 4, 4, Layer::overlay);
+        for (int x = 1; x < 5; ++x) {
+            for (int y = st.y - 6; y < st.y - 2; ++y) {
+                PLATFORM.set_palette(Layer::overlay, x, y, 10);
+            }
+        }
+
+        for (int i = 4; i < data_->character_name_text_->len() + 1; ++i) {
+            PLATFORM.set_tile(Layer::overlay, 1 + i, st.y - 6, 113);
+        }
+
+        for (int i = 1; i < data_->character_name_text_->len() + 1; ++i) {
+            PLATFORM.set_tile(Layer::overlay, i, st.y - 8, 114);
+        }
+
+
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 5, 122);
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 4, 122);
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 3, 122);
+
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 6, 119);
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 7, 120);
+        PLATFORM.set_tile(Layer::overlay, 0, st.y - 8, 121);
+
+
+        PLATFORM.set_tile(Layer::overlay,
+                          data_->character_name_text_->len() + 1,
+                          st.y - 6,
+                          115);
+
+        PLATFORM.set_tile(Layer::overlay,
+                          data_->character_name_text_->len() + 1,
+                          st.y - 8,
+                          116);
+
+        PLATFORM.set_tile(Layer::overlay,
+                          1 + data_->character_name_text_->len(),
+                          st.y - 7,
+                          112);
+    } else if (data_->character_name_text_) {
+        auto loc = data_->character_name_text_->coord();
+        auto len = data_->character_name_text_->len();
+        for (int y = loc.y - 1; y < loc.y + 1; ++y) {
+            for (int x = loc.x - 1; x < loc.x + len + 1; ++x) {
+                PLATFORM.set_tile(Layer::overlay, x, y, 0);
+            }
+        }
+        data_->character_name_text_.reset();
+    }
+    data_->anim_text_.clear();
+    data_->anim_style_.clear();
+    data_->anim_ready_ = nullptr;
+}
+
+
+
+void BoxedDialogScene::enter(Scene& prev)
+{
+    PLATFORM.fill_overlay(0);
+
+    PLATFORM.load_overlay_texture("overlay_dialog");
+
+    if (data_->character_.image_) {
+        auto st = calc_screen_tiles();
+
+        data_->character_name_text_.emplace(OverlayCoord{1, u8(st.y - 7)});
+
+        data_->character_name_text_->assign(
+            data_->character_.name_.c_str(),
+            Text::OptColors{{custom_color(0xf3ea55), custom_color(0x232390)}});
+    }
+
+    clear_textbox();
+
+    text_state_.current_word_remaining_ = 0;
+    text_state_.timer_ = 0;
+    text_state_.line_ = 0;
+    text_state_.pos_ = 0;
+
+    if (*text_state_.current_word_ == '<') {
+        // Advance the timer, the text buffer starts with a command!
+        text_state_.timer_ = milliseconds(81);
+    }
+}
+
+
+
+void BoxedDialogScene::exit(Scene& prev)
+{
+    if (img_view_2_) {
+        PLATFORM.fill_overlay(123);
+        PLATFORM.screen().schedule_fade(1.f);
+        PLATFORM.screen().clear();
+        PLATFORM.screen().display();
+        for (int x = 0; x < 16; ++x) {
+            for (int y = 0; y < 16; ++y) {
+                PLATFORM.set_tile(Layer::map_1_ext, x, y, 0);
+            }
+        }
+        PLATFORM.load_tile1_texture("tilesheet");
+        PLATFORM.screen().clear();
+        PLATFORM.screen().display();
+        PLATFORM.fill_overlay(0);
+    }
+
+    PLATFORM.fill_overlay(0);
+
+    PLATFORM.load_overlay_texture("overlay");
+    data_->coins_.reset();
+    data_->character_name_text_.reset();
+}
+
+
+
+static lisp::Value* get_dialog_opt_list()
+{
+    // See init.lisp for structure of dialog-opts. The option list consists of a
+    // list of name+callback pairs:
+    // e.g.: '(("yes" . <lambda>) ("no" . <lambda>))
+
+    auto opts = lisp::get_var("dialog-opts");
+    if (opts and opts->type() not_eq lisp::Value::Type::nil) {
+        return opts;
+    }
+    return nullptr;
+}
+
+
+
+ScenePtr BoxedDialogScene::update(Time delta)
+{
+    if (data_->coins_) {
+        data_->coins_->update(delta);
+    }
+
+    data_->text_anim_timer_ += delta;
+    for (u32 i = 0; i < data_->anim_text_.size(); ++i) {
+        auto style = data_->anim_style_[i];
+        auto& text = data_->anim_text_[i];
+        animate_text(text, style, data_->text_anim_timer_);
+    }
+
+    auto is_action_button_down = [&] {
+        return button_down<Button::action_1>() or
+               state_bit_load(StateBit::regression);
+    };
+
+
+    if (ambience_) {
+        if (not PLATFORM.speaker().is_sound_playing(ambience_)) {
+            PLATFORM.speaker().play_sound(ambience_, 9);
+        }
+    }
+
+    auto animate_moretext_icon = [&] {
+        static const auto duration = milliseconds(500);
+        text_state_.timer_ += delta;
+        if (text_state_.timer_ > duration) {
+            text_state_.timer_ = 0;
+            const auto st = calc_screen_tiles();
+            int x = st.x - 3;
+            if (text_scroll_direction == 1) {
+                if (data_->character_.image_) {
+                    x = 6;
+                } else {
+                    x = 3;
+                }
+            }
+            if (PLATFORM.get_tile(Layer::overlay, x, st.y - (2 + y_start)) ==
+                91) {
+                PLATFORM.set_tile(Layer::overlay, x, st.y - (2 + y_start), 92);
+            } else {
+                PLATFORM.set_tile(Layer::overlay, x, st.y - (2 + y_start), 91);
+            }
+        }
+    };
+
+    switch (display_mode_) {
+    case DisplayMode::animate_in:
+        display_mode_ = DisplayMode::busy;
+        break;
+
+    case DisplayMode::busy: {
+
+        const bool text_busy = advance_text(delta, true);
+
+        if (not text_busy) {
+            display_mode_ = DisplayMode::button_released_check1;
+        } else {
+            if (text_state_.speed_ == 0 and allow_fastforward_ and
+                (button_down<Button::action_2>() or is_action_button_down())) {
+
+                if (not state_bit_load(StateBit::regression)) {
+                    PLATFORM.sleep(3);
+                }
+                while (advance_text(delta, false)) {
+                    if (display_mode_ not_eq DisplayMode::busy) {
+                        break;
+                    }
+                }
+
+                if (display_mode_ == DisplayMode::busy) {
+                    display_mode_ = DisplayMode::button_released_check1;
+                }
+            }
+        }
+    } break;
+
+    case DisplayMode::wait: {
+        animate_moretext_icon();
+
+        if (button_down<Button::action_2>() or is_action_button_down()) {
+
+            text_state_.timer_ = 0;
+
+            clear_textbox();
+            display_mode_ = DisplayMode::busy;
+        }
+        break;
+    }
+
+    case DisplayMode::button_released_check1:
+        // if (button_down<Button::action_2>() or
+        //     button_down<Button::action_1>()) {
+
+        text_state_.timer_ = seconds(1);
+        display_mode_ = DisplayMode::wait;
+        // }
+        break;
+
+    case DisplayMode::button_released_check2: {
+        text_state_.timer_ = seconds(1);
+
+        if (auto opts = get_dialog_opt_list()) {
+
+            const auto st = calc_screen_tiles();
+
+            // int opt_count = lisp::length(opts);
+
+            int y = st.y - (7 + y_start);
+
+            u32 max_text_len = 0;
+            int opt_count = lisp::length(opts);
+            utf8::Codepoint final_char = '\0';
+
+            lisp::l_foreach(opts, [&](lisp::Value* elem) {
+                auto text = elem->cons().car()->string().value();
+                auto t_len = utf8::len(text);
+
+                if (t_len > max_text_len) {
+                    max_text_len = t_len;
+                    final_char = text[strlen(text) - 1];
+                }
+            });
+
+            // Trailing periods or exclamation points are aligned close to the
+            // left edge of a tile, but push the overall length of a dialog
+            // option one extra tile out, which wastes screen space. As a
+            // compromise, do not create a right margin of whitespace when the
+            // final character of the longest dialog line has a lot of
+            // rightwards trailing whitespace.
+            if (final_char == '.' or final_char == '!') {
+                --max_text_len;
+            }
+
+            for (int x = (st.x - 1) - (max_text_len + 3); x < st.x - 1; ++x) {
+                for (int y = st.y - (6 + (opt_count * 2 - 1) + y_start);
+                     y < st.y - 7;
+                     ++y) {
+                    PLATFORM.set_tile(Layer::overlay, x, y, 82);
+                }
+            }
+
+
+
+            lisp::l_foreach(opts, [&](lisp::Value* elem) {
+                auto text = elem->cons().car()->string().value();
+
+                const u8 t_y = y;
+                y -= 2;
+                const u8 t_x = (st.x - 2) - max_text_len;
+
+                OverlayCoord pos{t_x, t_y};
+                data_->text_opts_.emplace_back(text, pos);
+            });
+
+            PLATFORM.set_tile(
+                Layer::overlay, st.x - 1, st.y - (6 + y_start), 86);
+            int i;
+            for (i = 0; i < opt_count * 2 - 1; ++i) {
+                PLATFORM.set_tile(
+                    Layer::overlay, st.x - 1, st.y - (7 + i + y_start), 88);
+                PLATFORM.set_tile(Layer::overlay,
+                                  (st.x - 1) - (max_text_len + 4),
+                                  st.y - (7 + i + y_start),
+                                  89);
+            }
+            PLATFORM.set_tile(
+                Layer::overlay, st.x - 1, st.y - (7 + i + y_start), 87);
+            PLATFORM.set_tile(Layer::overlay,
+                              (st.x - 1) - (max_text_len + 4),
+                              st.y - (7 + i + y_start),
+                              83);
+
+            const auto cname_len = utf8::len(data_->character_.name_.c_str());
+
+            const bool overlap = max_text_len + 4 + 1 + cname_len >= 30;
+
+            const bool overlap_edge = max_text_len + 4 + 1 + cname_len >= 29;
+
+            u16 corner_tile = 90;
+
+            if (overlap) {
+                corner_tile = 132;
+                PLATFORM.set_tile(Layer::overlay,
+                                  (st.x - 1) - (max_text_len + 4),
+                                  st.y - (6 + y_start) - 1,
+                                  133);
+            } else if (overlap_edge) {
+                corner_tile = 132;
+                PLATFORM.set_tile(Layer::overlay,
+                                  (st.x - 1) - (max_text_len + 4),
+                                  st.y - (6 + y_start) - 1,
+                                  134);
+            }
+
+            PLATFORM.set_tile(Layer::overlay,
+                              (st.x - 1) - (max_text_len + 4),
+                              st.y - (6 + y_start),
+                              corner_tile);
+
+            for (int j = 0; j < (int)max_text_len + 3; ++j) {
+                PLATFORM.set_tile(
+                    Layer::overlay, (st.x - 2) - j, st.y - (6 + y_start), 85);
+                PLATFORM.set_tile(Layer::overlay,
+                                  (st.x - 2) - j,
+                                  st.y - (7 + i + y_start),
+                                  84);
+            }
+
+            if (show_coins_) {
+                data_->coins_.emplace(OverlayCoord{1, 2},
+                                      146,
+                                      (int)APP.coins(),
+                                      UIMetric::Align::left);
+            }
+
+            display_mode_ = DisplayMode::y_n_wait;
+            wait_ = 0;
+        } else {
+            display_mode_ = DisplayMode::done;
+        }
+    } break;
+
+    case DisplayMode::y_n_wait:
+        if (++wait_ == 18) {
+            display_mode_ = DisplayMode::done;
+        }
+        break;
+
+    case DisplayMode::done:
+        if (get_dialog_opt_list()) {
+            display_mode_ = DisplayMode::boolean_choice;
+            text_state_.timer_ = seconds(1);
+            choice_sel_ = data_->text_opts_.size() - 1;
+            break;
+        }
+        animate_moretext_icon();
+        if (is_action_button_down() or button_down<Button::action_2>()) {
+            if (APP.dialog_receiver_promise()) {
+                auto p = (lisp::Value*)*APP.dialog_receiver_promise();
+                APP.dialog_receiver_promise().reset();
+                PLATFORM.set_background_task(parallax_background_task);
+                lisp::resolve_promise_safe(p, L_NIL);
+                PLATFORM.set_background_task(nullptr);
+                lisp::pop_op();
+            } else {
+                invoke_hook("on-dialog-closed");
+            }
+            display_mode_ = DisplayMode::animate_out;
+        }
+        break;
+
+    case DisplayMode::boolean_choice: {
+        static const auto duration = milliseconds(400);
+        text_state_.timer_ += delta;
+
+        int cursor_x = 30;
+
+        auto update_opt_cursor = [&] {
+            for (u32 i = 0; i < data_->text_opts_.size(); ++i) {
+                if (cursor_x > data_->text_opts_[i].coord().x - 2) {
+                    cursor_x = data_->text_opts_[i].coord().x - 2;
+                }
+            }
+            for (u32 i = 0; i < data_->text_opts_.size(); ++i) {
+                PLATFORM.set_tile(Layer::overlay,
+                                  cursor_x,
+                                  data_->text_opts_[i].coord().y,
+                                  82);
+            }
+            PLATFORM.set_tile(Layer::overlay,
+                              cursor_x,
+                              data_->text_opts_[choice_sel_].coord().y,
+                              cursor_anim_ ? 110 : 109);
+        };
+
+        if (text_state_.timer_ > duration) {
+            text_state_.timer_ = 0;
+            cursor_anim_ = not cursor_anim_;
+            update_opt_cursor();
+        }
+
+        if (button_down<Button::action_2>()) {
+            choice_sel_ = 0;
+            PLATFORM.speaker().play_sound("click", 1);
+            update_opt_cursor();
+        }
+
+        if (button_down<Button::down>()) {
+            if (choice_sel_ == 0) {
+                choice_sel_ = data_->text_opts_.size() - 1;
+            } else {
+                --choice_sel_;
+            }
+            PLATFORM.speaker().play_sound("click", 1);
+            update_opt_cursor();
+        }
+
+        if (button_down<Button::up>()) {
+            if (choice_sel_ == (int)data_->text_opts_.size() - 1) {
+                choice_sel_ = 0;
+            } else {
+                ++choice_sel_;
+            }
+            PLATFORM.speaker().play_sound("click", 1);
+            update_opt_cursor();
+        }
+
+        if (is_action_button_down()) {
+            text_state_.timer_ = 0;
+
+            if (APP.game_speed() not_eq GameSpeed::stopped) {
+                PLATFORM.speaker().play_sound("button_wooden", 3);
+            }
+
+            if (auto opts = get_dialog_opt_list()) {
+                lisp::Protected old_dialog_opts(opts);
+                lisp::dostring("(dialog-opts-reset)");
+
+                lisp::Value* cb = lisp::get_list(old_dialog_opts, choice_sel_);
+
+                if (APP.dialog_receiver_promise()) {
+                    // Invoke the callback anyway
+                    lisp::safecall(cb->cons().cdr(), 0);
+                    lisp::pop_op();
+
+                    lisp::Protected p =
+                        (lisp::Value*)*APP.dialog_receiver_promise();
+                    APP.dialog_receiver_promise().reset();
+                    PLATFORM.set_background_task(parallax_background_task);
+                    lisp::resolve_promise_safe(
+                        p,
+                        L_INT((lisp::length(old_dialog_opts) - 1) -
+                              choice_sel_));
+                    PLATFORM.set_background_task(nullptr);
+                } else {
+                    lisp::safecall(cb->cons().cdr(), 0);
+                }
+                lisp::pop_op();
+            }
+
+            display_mode_ = DisplayMode::animate_out;
+        }
+        break;
+    }
+
+    case DisplayMode::animate_out:
+        display_mode_ = DisplayMode::clear;
+        if (img_view_2_) {
+            int frames = 30;
+            for (int i = 0; i < frames; ++i) {
+                PLATFORM.screen().schedule_fade(
+                    Float(i) / frames, {ColorConstant::rich_black, true, true});
+                PLATFORM.screen().clear();
+                PLATFORM.screen().display();
+                if (ambience_) {
+                    if (not PLATFORM.speaker().is_sound_playing(ambience_)) {
+                        PLATFORM.speaker().play_sound(ambience_, 9);
+                    }
+                }
+            }
+            PLATFORM.sleep(20);
+        }
+        if (img_view_) {
+            img_view_ = false;
+            PLATFORM.load_sprite_texture("spritesheet");
+            PLATFORM.screen().schedule_fade(0);
+        }
+        PLATFORM.fill_overlay(0);
+        break;
+
+    case DisplayMode::clear:
+        if (goto_tutorial_) {
+            auto next = make_scene<SelectTutorialScene>();
+            next->quick_select(goto_tutorial_ - 1);
+            return next;
+        }
+        return data_->next_scene_();
+    }
+
+    return null_scene();
+}
+
+
+
+void BoxedDialogScene::display()
+{
+    for (auto& spr_text : data_->anim_text_) {
+        spr_text.draw();
+    }
+
+    if (img_view_ and display_mode_ not_eq DisplayMode::animate_out) {
+        Sprite spr;
+        spr.set_size(Sprite::Size::w32_h32);
+        spr.set_texture_index(0);
+
+        auto p = PLATFORM.screen().get_view().int_center();
+        int t = 0;
+        int x_span = 6;
+        for (int y = 0; y < 3; ++y) {
+            for (int x = 0; x < x_span; ++x) {
+                spr.set_position({Fixnum::from_integer(p.x + x * 32 + 24),
+                                  Fixnum::from_integer(p.y + y * 32 + 12)});
+                spr.set_texture_index(t++);
+                PLATFORM.screen().draw(spr);
+            }
+        }
+    }
+}
+
+
+
+ScenePtr
+dialog_prompt(SystemString systr, DeferredScene next, const char* ambience)
+{
+    lisp::set_var("on-dialog-closed", L_NIL);
+    PLATFORM.screen().fade(0.95f);
+    PLATFORM.screen().fade(1.f);
+    auto dialog = allocate<DialogString>("dialog-buffer");
+    *dialog = loadstr(systr)->c_str();
+    auto s = make_scene<BoxedDialogScene>(std::move(dialog));
+    s->set_next_scene(next);
+    s->ambience_ = ambience;
+    return s;
+}
+
+
+
+} // namespace skyland

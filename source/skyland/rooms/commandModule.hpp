@@ -1,0 +1,116 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+
+#include "skyland/room.hpp"
+#include "skyland/systemString.hpp"
+#include "skyland/types.hpp"
+
+
+
+namespace skyland
+{
+
+
+
+class CommandModule final : public Room
+{
+public:
+    CommandModule(Island* parent,
+                  const RoomCoord& position,
+                  const char* n = name());
+
+
+    void update(Time delta) override;
+
+
+    void render_interior(App* app, TileId buffer[16][16]) override;
+    void render_exterior(App* app, TileId buffer[16][16]) override;
+
+
+    static void format_description(StringBuffer<512>& buffer);
+
+
+    static Category category()
+    {
+        return Category::misc;
+    }
+
+
+    static RoomProperties::Bitmask properties()
+    {
+        return RoomProperties::not_constructible | RoomProperties::habitable |
+               RoomProperties::disabled_in_tutorials |
+               RoomProperties::singleton;
+        ;
+    }
+
+
+    bool description_visible() override
+    {
+        return true;
+    }
+
+
+    static ATP atp_value()
+    {
+        return 20.0_atp;
+    }
+
+
+    static Vec2<u8> size()
+    {
+        return {1, 2};
+    }
+
+
+    static const constexpr char* name()
+    {
+        return "command-module";
+    }
+
+
+    static SystemString ui_name()
+    {
+        return SystemString::block_command_module;
+    }
+
+
+    static Icon icon()
+    {
+        return 3992;
+    }
+
+
+    static Icon unsel_icon()
+    {
+        return 3976;
+    }
+
+
+private:
+    Time next_action_timer_ = seconds(1);
+
+    using IdBuffer = Buffer<CharacterId, 80>;
+
+    struct IdBuffers
+    {
+        IdBuffer local_;
+        IdBuffer boarded_;
+    };
+
+    DynamicMemory<IdBuffers> id_buffers_;
+};
+
+
+
+} // namespace skyland

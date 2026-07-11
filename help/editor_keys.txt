@@ -1,0 +1,57 @@
+
+ editor_keys.txt
+
+ Describes keyboard
+ shortcuts for our in-game
+ script editor.
+
+
+o---------------------------o
+ All modes:
+
+ Select: open/close text selection.
+
+
+o---------------------------o
+ nav-mode
+
+ D-pad: Move cursor
+ B: Save and quit
+
+ LBumper+A: Insert newline
+ LBumper+B: Backspace
+
+ LBumper+D-pad-right: Jump to end of line
+ LBumper+D-pad-left: Jump to start of line
+ LBumper+D-pad-down: Jump to end of file
+ LBumper+D-pad-up: Jump to beginning of file
+
+ RBumper+LBumper: Center the view over the cursor
+ LBumper+RBumper: Center the view over the cursor
+
+ RBumper+D-pad-right: Cursor forwards one word
+ RBumper+D-pad-left: Cursor backwards one word
+ RBumper+D-pad-down: Cursor forwards one paragraph
+ RBumper+D-pad-up: Cursor backwards one paragraph
+
+ RBumper+A: Copy selection
+ RBumper+B: Paste selection
+
+ A: Switch to edit-mode
+
+
+o---------------------------o
+ edit-mode
+
+ B: Back to nav-mode
+ D-pad: Move keyboard cursor
+ A: Insert character
+ LBumper: Open autocomplete
+
+
+o---------------------------o
+ autocomplete-mode
+
+ D-pad: move completion cursor
+ A: insert completion, switch to edit-mode
+ B: cancel, switch to edit mode

@@ -1,0 +1,1332 @@
+
+ lisp_builtins.txt
+ 
+ SKYLAND LISP standard
+ library documentation
+
+
+ Core Library Function
+ documentation:
+
+
+
+##############################
+
+ Section1:
+
+ Lists
+
+##############################
+
+o────────────────────────────o
+
+ (acons key value alist)
+
+ Append (key . value) to
+ association list alist.
+
+
+o────────────────────────────o
+
+ (append list1 list2)
+
+ Concatenate lists.
+
+
+o────────────────────────────o
+
+ (apply function list)
+
+ Invoke function with
+ elements of list as
+ arguments.
+
+ e.g.:
+
+ (apply cons '(1 2)) is the
+ same as calling (cons 1 2).
+
+ Allows you to
+ programatically create a
+ function call with arguments
+ sourced from a list.
+
+
+o────────────────────────────o
+
+ (assoc key alist)
+
+ Search alist, return the
+ key value pair for which
+ the key matches the supplied
+ argument.
+
+
+o────────────────────────────o
+
+ (cons a b)
+
+ Return a pair containing
+ (a . b).
+
+
+o────────────────────────────o
+
+ (car pair)
+ (first pair)
+
+ Return the first element
+ of a pair.
+
+
+o────────────────────────────o
+
+ (cdr pair)
+ (second pair)
+ (rest pair)
+
+ Return the second element
+ of a pair.
+
+
+o────────────────────────────o
+
+ (caar list)
+
+ Returns the car of the first
+ element of a list.
+ i.e.: (car (car list))
+
+
+o────────────────────────────o
+
+ (cadr list)
+
+ Returns the second element
+ of a list.
+ i.e.: (car (cdr list))
+
+
+o────────────────────────────o
+
+ (cddr list)
+
+ Returns the rest of the
+ second element of a list.
+ i.e.: (cdr (cdr list))
+
+
+o────────────────────────────o
+
+ (contains list value)
+
+ Check if list contains value.
+
+
+o────────────────────────────o
+
+ (curry function ...)
+
+ Return a partially
+ evaluated function.
+
+ e.g.:
+ (setq temp (curry cons 1))
+ (temp 2) -> (1 . 2)
+
+
+o────────────────────────────o
+
+ (difference l1 l2)
+
+ Return a list represting the
+ disjoint set of elements
+ between l1 and l2.
+
+
+o────────────────────────────o
+
+ (fill n value)
+
+ Return a list containing n
+ repetitions of value.
+
+
+o────────────────────────────o
+
+ (filter function list)
+
+ Return a new list,
+ containing only elements for
+ which function returns a
+ non-false value.
+
+
+o────────────────────────────o
+
+ (find value list)
+
+ If value exists in list,
+ return index. Otherwise,
+ return nil.
+
+
+o────────────────────────────o
+
+ (flatten list)
+
+ Condense nested lists into
+ one flat list.
+
+
+o────────────────────────────o
+
+ (gen callback count)
+
+ Generate a list of count
+ elements, by invoking
+ callback count times, while
+ passing the number of prior
+ invocations to callback.
+
+ e.g.:
+ (gen (lambda (* $0 2)) 5)
+ -> '(0 2 4 6 8)
+
+o────────────────────────────o
+
+ (get sequence index)
+
+ Retrieve element of sequence
+ specified by integer index.
+
+
+o────────────────────────────o
+
+ (insert value list index)
+
+ Insert value into list at
+ index.
+
+
+o────────────────────────────o
+
+ (length list-or-string)
+
+ Return length of a list,
+ string, or array.
+ For strings, length
+ represents the UTF-8 length
+ of the text (i.e. characters
+ rather than bytes).
+
+
+o────────────────────────────o
+
+ (list ...)
+
+ Return a list containing
+ all of the arguments
+ supplied to the list
+ function.
+
+ e.g. (list 1 2 3) ->
+ '(1 2 3)
+
+o────────────────────────────o
+
+ (map function list)
+
+ Call function for each
+ element of input list,
+ return output list with
+ call results.
+
+ Note: For advanced users:
+ Map does allow you to
+ pass multiple lists,
+ like in other popular
+ LISP dialects.
+
+
+o────────────────────────────o
+
+ (min list)
+
+ Return the minimum value
+ in a list of integers.
+ 
+
+o────────────────────────────o
+
+ (max list)
+
+ Return the maximum value
+ in a list of integers.
+
+
+o────────────────────────────o
+
+ (push var-sym value)
+
+ Overwrite a list variable
+ specified by var-sym with a
+ new list containing value.
+
+
+o────────────────────────────o
+
+ (push-set var-sym value)
+
+ Push to a list variable,
+ organizing the list as an
+ unordered set.
+
+
+o────────────────────────────o
+
+ (range n m)
+
+ Return a range of numbers
+ between n and m.
+
+ You may optionally supply
+ the step size in a third
+ argument.
+
+ Inputs must be integers or
+ ratios.
+
+
+o────────────────────────────o
+
+ (replace list predicate v)
+
+ For each element where
+ predicate returns true,
+ replace the element in the
+ list with value v.
+
+
+o────────────────────────────o
+
+ (reverse list)
+
+ Return list in reverse
+ order.
+
+
+o────────────────────────────o
+
+ (slice list begin [end])
+
+ Retrieve a sublist from
+ a list. If you do not pass
+ the end parameter, the
+ function will slice from
+ begin to the list end.
+
+
+o────────────────────────────o
+
+ (sort list comparator)
+
+ Sort a list.
+
+
+o────────────────────────────o
+
+ (union l1 l2)
+
+ Return the union of two
+ lists.
+
+
+
+##############################
+
+ Section2:
+
+ Math
+
+##############################
+
+o────────────────────────────o
+
+ (abs n)
+
+ Return absolute value of
+ integer n.
+
+
+o────────────────────────────o
+
+ (float v)
+
+ Convert v into a floating
+ point number. v must be a
+ string, float, or integer.
+
+
+o────────────────────────────o
+
+ (incr v)
+
+ Increment a rational number.
+
+
+o────────────────────────────o
+
+ (int v)
+
+ Convert v to an integer, if
+ possible. v must be a string,
+ float, ratio, or integer.
+
+
+o────────────────────────────o
+
+ (int-to-bytes integer)
+
+ Disassemble an integer into
+ a list of bytes.
+
+
+o────────────────────────────o
+
+ (bytes-to-int bytes)
+
+ Assemble a list of four
+ bytes into an integer.
+
+
+o────────────────────────────o
+
+ (decr v)
+
+ Decrement a rational number.
+
+
+o────────────────────────────o
+
+ (< a b)
+ (> a b)
+ (+ ...)
+ (- a b)
+ (* ...)
+ (/ a b)
+ (mod a b)
+
+ Standard operators.
+
+ Note: + and * are variadic.
+
+ Note: (-) called with one
+ argument flips a number's
+ sign.
+
+ Note: The mod operator does
+ not support floats.
+
+
+o────────────────────────────o
+
+ (bit-and a b)
+ (bit-or a b ...)
+ (bit-xor a b)
+ (bit-not a)
+ (bit-shift-left a b)
+ (bit-shift-right a b)
+
+ Bitwise operators. Arguments
+ must be integers.
+
+
+o────────────────────────────o
+
+ (rationalize float)
+
+ Convert a floating point
+ number to a ratio.
+
+
+
+##############################
+
+ Section3:
+
+ Strings
+
+##############################
+
+o────────────────────────────o
+
+ (format string values...)
+
+ Substitute values into
+ string for each % character.
+
+ e.g.:
+ (format "nums % %" 1 'cat)
+ -> "nums 1 cat"
+
+
+o────────────────────────────o
+
+ (hex number)
+
+ Format a number as a hex
+ string.
+
+
+o────────────────────────────o
+
+ (read string)
+
+ Parse a LISP datastructure
+ encoded as a string.
+
+
+o────────────────────────────o
+
+ (rot13 string)
+
+ Encrypt/decrypt a string
+ using a ROT13 cypher.
+
+
+o────────────────────────────o
+
+ (slice string begin end)
+
+ Retrieve a substring from
+ a string.
+
+
+o────────────────────────────o
+
+ (split string delim)
+
+ NOTE: Split only currently
+ works with ASCII delimiters!
+ I.e. delim must be an ASCII
+ character. Otherwise, split
+ does what you'd expect it to
+ do.
+
+
+o────────────────────────────o
+
+ (string ...)
+
+ Compose a string by
+ converting each argument
+ to a string and
+ concatenating them.
+
+o────────────────────────────o
+
+ (string-explode str)
+
+ Disassemble a string into a
+ list of integer codepoints.
+
+
+o────────────────────────────o
+
+ (string-assemble list)
+
+ Assemble a list of integer
+ codepoints back into a
+ string.
+
+
+o────────────────────────────o
+
+ (string-to-bytes string)
+
+ Like string-explode, but
+ outputs a list of bytes in
+ range 0->255 instead of
+ outputting codepoints. This
+ is a lower level version
+ of the function that ignores
+ encoding. But sometimes you
+ want to ignore encoding...
+ like if you're working with
+ plain bytes an an input...
+
+
+o────────────────────────────o
+
+ (bytes-to-string bytes)
+
+ Re-interpret a list of
+ bytes ranged [0-255] as a
+ string.
+
+
+
+##############################
+
+ Section4:
+
+ Symbols
+
+##############################
+
+o────────────────────────────o
+
+ (apropos string)
+
+ Returns all symbols in the
+ environment beginning with
+ the prefix specified by the
+ string argument.
+
+o────────────────────────────o
+
+ (bound? symbol)
+
+ Return a true value if a
+ variable binding exists for
+ symbol. Return a false value
+ otherwise.
+
+
+o────────────────────────────o
+
+ (symbol string)
+
+ Create a symbol from a
+ string.
+
+
+o────────────────────────────o
+
+ (unbind symbols...)
+
+ Delete variable binding
+ for symbols.
+
+ Be careful! (unbind '+),
+ for example, will delete the
+ addition operator. Don't
+ go around unbinding
+ standard library functions.
+
+
+
+##############################
+
+ Section5:
+
+ Predicates
+
+##############################
+
+o────────────────────────────o
+
+ (nil? v)
+ (int? v)
+ (pair? v)
+ (lambda? v)
+ (error? v)
+ (symbol? v)
+ (userdata? v)
+ (string? v)
+ (odd? v)
+ (list? v)
+
+ Standard predicates.
+
+ (boolean? v)
+
+ Returns true if v is 0, 1 or
+ nil. The language treats all
+ non-nil as true in control
+ flow expressions, but the
+ boolean? predicate also
+ exists for convenience.
+
+
+o────────────────────────────o
+
+ (equalto? v)
+
+ Returns a predicate which
+ evaluates to true when
+ applied to values equal to
+ v.
+
+
+
+##############################
+
+ Section6:
+
+ System and Control
+
+##############################
+
+o────────────────────────────o
+
+ (arg n)
+
+ Programatically retrieve
+ function argument specified
+ by integer n.
+
+ If you want to access args
+ as a list, use special
+ variable $V.
+
+
+o────────────────────────────o
+
+ (compile function)
+
+ Return a bytecode-compiled
+ version of supplied
+ function.
+
+
+o────────────────────────────o
+
+ (disassemble function)
+
+ If the function is not
+ compiled, then return the
+ LISP representation of the
+ function.
+
+ If the function is compiled,
+ and there is a remote console
+ (e.g. UART) connected, then
+ print to the console.
+ Otherwise, write the
+ disassembler output to the
+ game's syslog.
+
+
+o────────────────────────────o
+
+ (equal a b)
+
+ Return a true value if a
+ and b are equivalent. Return
+ a false value otherwise.
+
+ False values include 0 or
+ nil. True values include
+ everything else.
+
+ equal may not return zero
+ or one! Return type is not
+ specified, only guaranteed
+ to be true or false.
+
+
+o────────────────────────────o
+
+ (error string)
+
+ Return an error.
+
+
+o────────────────────────────o
+
+ (error-info error)
+
+ Return info attached to an
+ error value.
+
+
+o────────────────────────────o
+
+ (eval list <environment>)
+
+ Evaluate a list as LISP
+ code.
+
+ Optionally, you may pass an
+ environment to evaluate an
+ expression in:
+
+ ;; Use the current
+ ;; environment's variable
+ ;; bindings:
+ (eval <expr>
+       (current-environment))
+
+ ;; Use the toplevel bindings
+ ;; instead:
+ (eval <expr>
+       (toplevel-environment))
+
+ ;; Use the environment of
+ ;; the function that called
+ ;; the current function:
+ (eval <expr>
+       (caller-environment))
+ ;; NOTE: invoking
+ ;; caller-environment at the
+ ;; top-level may produce
+ ;; unexpected behavior.
+
+
+o────────────────────────────o
+
+ (gc)
+
+ Invoke the garbage collcetor.
+ Returns the collect count.
+
+
+o────────────────────────────o
+
+ (identity v)
+
+ Returns its input.
+
+
+o────────────────────────────o
+
+ (lisp-mem-crit-gc-alert on)
+
+ When turned on, the
+ interpreter will raise a
+ fatal error if the program
+ triggers a garbage
+ collection cycle due to
+ running out of memory.
+ I try to avoid getting into
+ situations like that,
+ because the GC is a bit
+ buggy in cases where it
+ runs in the middle of
+ allocating new values
+ inside built-in functions,
+ perhaps I failed to
+ declare something as a GC
+ root.
+
+
+ o────────────────────────────o
+
+ (lisp-mem-set-gc-thresh n)
+
+ Run GC when free values drop
+ below n (min 30).
+
+ Higher threshold = more
+ frequent GC = wider safety
+ margin.
+
+ Some complex operations
+ require multiple allocations
+ to complete atomically.
+ Running GC too aggressively
+ (threshold < 30) may trigger
+ collection mid-operation,
+ exposing edge cases in tree
+ operations or string
+ compaction.
+
+
+o────────────────────────────o
+
+ (lisp-mem-...)
+
+ * vals-remaining:
+ Remaining unallocated
+ LISP values.
+
+ * global-count:
+ Global vars allocated.
+
+ * string-internb:
+ Bytes in memory internalized
+ for symbol storage at
+ runtime.
+
+ * bytecode-size:
+ Bytes in memory reserved for
+ bytecode.
+
+ * sbr-used:
+ Number of additional memory
+ pages allocated by the
+ interpreter.
+
+ * string-storage:
+ Number of string bytes
+ allocated.
+
+ * stack-used:
+ Number of operand stack
+ slots in use.
+
+
+o────────────────────────────o
+
+ (lisp-mem-string-buffers)
+
+ Returns a list of
+ databuffers allocated by
+ the interpreter for holding
+ strings.
+
+ Suggestion: ...
+ (map
+  databuffer-inspect
+  (lisp-mem-string-buffers))
+  
+ ...will let you inspect all
+ buffers containing strings!
+
+
+o────────────────────────────o
+
+ (nameof value)
+
+ Returns a symbol representing
+ the name of a value, if
+ bound to a global variable.
+
+o────────────────────────────o
+
+ (not value)
+
+ If value is true, return
+ a false value. Otherwise,
+ return a true value.
+
+
+o────────────────────────────o
+
+ (require-args function num)
+
+ Produce an error if future
+ calls to function accept
+ fewer than num args. Returns
+ the modified copy of
+ the function.
+
+
+o────────────────────────────o
+
+ (global 'symbol ...)
+
+ Define global variables for
+ symbols.
+
+
+o────────────────────────────o
+
+ (set symbol value)
+
+ Set a global variable or
+ let binding to a new value.
+
+ The standard library defines
+ a setq macro, so usually no
+ need to call set manually.
+
+
+o────────────────────────────o
+
+ (stacktrace)
+
+ Returns a list containing
+ functions on the callstack.
+
+
+o────────────────────────────o
+
+ (strict-mode enabled)
+
+ In strict mode, the
+ interpreter will raise an
+ error when evaluating a set
+ expression for which a
+ variable binding does not
+ exist.
+
+
+o────────────────────────────o
+
+ (this)
+
+ Return the current
+ executing function (if any).
+
+
+o────────────────────────────o
+
+ (type v)
+
+ Returns a symbol representing
+ the type of an input value.
+
+ For wrapped values (see
+ section 9), type will return
+ the type-symbol passed to
+ wrap.
+
+
+
+##############################
+
+ Section7:
+
+ Macros
+
+##############################
+
+o────────────────────────────o
+
+ (+= variable number)
+
+ (setq variable
+       (+ variable number))
+
+
+o────────────────────────────o
+
+ (and expressions...)
+
+ Return true if all
+ expressions evaluate to
+ true. Stop checking
+ expressions if any expression
+ evaluates to false.
+
+
+o────────────────────────────o
+
+ (or expressions...)
+
+ Return true if one expression
+ evaluates to true. Stop
+ checking expressions if any
+ expression evaluates to true.
+
+
+o────────────────────────────o
+
+ (cond)
+
+ TODO: Document cond.
+ It works like most LISP
+ dialects.
+
+
+o────────────────────────────o
+
+ (defn name (args...)
+   body...)
+
+ Define a new function.
+
+
+o────────────────────────────o
+
+ (defn/c name (args...)
+   body...)
+
+ Like defn, but defines a
+ bytecode compiled function.
+
+
+o────────────────────────────o
+
+ (profile function)
+
+ Call function and return
+ the number of cycles elapsed
+ during execution.
+
+
+o────────────────────────────o
+
+ (progn expression...)
+
+ Evaluate each expression and
+ return the result of the
+ final expression.
+
+
+o────────────────────────────o
+
+ (setq variable value)
+
+ Set variable to value.
+ A shortcut for calling
+ (set), but quotes the
+ variable for you.
+
+
+o────────────────────────────o
+
+ (userdata-tag userdata)
+
+ Return the tag associated
+ with a userdata.
+
+
+o────────────────────────────o
+
+ (unless condition
+   ...)
+
+ Evaluate expressions if
+ condition is false.
+
+
+o────────────────────────────o
+
+ (when condition
+   ...)
+
+ Evaluate expressions if
+ condition is true.
+
+
+
+##############################
+
+ Section8:
+
+ Databuffers
+
+##############################
+
+o────────────────────────────o
+
+ (databuffer)
+
+ Allocate a 2 KB buffer.
+
+
+o────────────────────────────o
+
+ (buffer-write! buf
+                offset
+                bytes)
+
+ Write bytes to buf at
+ offset.
+
+ Bytes should contain a list
+ of integers, where each int
+ is of the range 0->255.
+
+ The function will return
+ true/false for
+ success/failure.
+
+ Failure cases are buffer
+ overruns and such...
+
+ NOTE: This is the only
+ function in the whole
+ implementation that modifies
+ a value. Careful!
+
+ See also:
+ int-to-bytes,
+ string-to-bytes
+
+
+o────────────────────────────o
+
+ (buffer-read buf offset len)
+
+ Read len bytes from buffer
+ at offset.
+
+ The result will be a list
+ of integers ranged 0->255.
+
+
+o────────────────────────────o
+
+
+
+##############################
+
+ Section9:
+
+ Arrays
+
+ (note: see get and length
+  in the list section, which
+  also work with arrays).
+
+ NOTE: Unlike most other
+ datatypes, arrays are
+ mutable. They exist mainly
+ for performance purposes,
+ otherwise, prefer using lists
+ in most cases unless you need
+ fast constant time access at
+ specific indices.
+
+
+##############################
+
+o────────────────────────────o
+ 
+ (array ...)
+
+ Create an array containing
+ the supplied arguments.
+
+
+o────────────────────────────o
+
+ (array-push array v)
+
+ Append an element to the end
+ of an array. Returns the
+ input array.
+
+o────────────────────────────o
+
+ (array-pop array)
+
+ Pop the final element off of
+ an array. Returns nil if the
+ array is empty.
+
+
+o────────────────────────────o
+
+ (array-set array index value)
+
+ Set a slot in the input
+ array to a given value.
+
+
+o────────────────────────────o
+
+ (array-resize array newsize)
+
+ Grow an array to a larger
+ size.
+
+
+o────────────────────────────o
+
+ (make-array len)
+
+ Create an empty array of
+ len entries.
+
+
+o────────────────────────────o
+
+
+
+##############################
+
+ Section10:
+
+ Custom Types
+
+##############################
+
+o────────────────────────────o
+
+ (wrap val type-sym)
+
+ Enclose a value in a custom-
+ typed wrapper.
+
+ When converted to a string,
+ the interpreter will pass the
+ wrapped value to a function
+ called -decorate-<type-sym> in
+ the environment. You have to
+ define this function yourself.
+
+ Also, -equal-<type-sym> can be
+ defined to make the wrapped
+ value compatible with the
+ equal function.
+
+ See the unittest.lisp section
+ about wrapped values for
+ examples.
+
+
+o────────────────────────────o
+
+ (unwrap val)
+
+ Return the value contained
+ in a type wrapper.
+
+
+
+##############################
+
+ Section11:
+
+ Debugging
+
+ Note: When hitting a
+ breakpoint, the game will
+ display an onscreen
+ debugger. Press A to step,
+ B to resume, and R to step
+ over.
+
+
+##############################
+
+
+ (breakpoint-register symbol)
+
+ Register a breakpoint.
+
+ When reaching a breakpoint,
+ the game will halt execution
+ and transfer control to the
+ builtin debugger.
+
+
+o────────────────────────────o
+
+(breakpoint-unregister symbol)
+
+ Remove a breakpoint.
+
+
+o────────────────────────────o
+
+ (breakpoint)
+
+ Halt execution and enter the
+ debugger.
+
+
+o────────────────────────────o
+
+ (watchpoint-register symbol)
+
+ When a variable with a name
+ matching symbol is written,
+ halt the game and open the
+ debugger.
+
+
+o────────────────────────────o
+
+(watchpoint-unregister symbol)
+
+ Remove a watchpoint.
+
+
+o────────────────────────────o

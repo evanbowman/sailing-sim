@@ -1,0 +1,6 @@
+'(("<c:Goblin:18>Gahh! <B:0> You are out of ssspace! <B:0> Nice friendsss will not leave usss! I'll build an ledarr!" . "<c:Goblin:18>¡Gahh! <B:0> ¡No tenesss sssitio! <B:0> ¡Amigosss amablesss no nosss dejarán! ¡Consstruiré una esscalela!")
+("<c:Goblin:18>Gahh! <B:0> You are out of ssspace! <B:0> Nice humansss will not leave usss! I'll build an ledarr!" . "<c:Goblin:18>¡Gahh! <B:0> ¡No tenesss sssitio! <B:0> ¡Humanosss amablesss no nosss dejarán! ¡Consstruiré una esscalela!")
+("Place block (1x2):" . "Colocar bloque (1x2):")
+("One of the goblins joined your crew!" . "¡Uno de los goblins se unió a tu tripulación!")
+("While scanning the goblin fortress' computers, you find some fascinating images of the surface world. You record them on a cartridge..." . "Al escanear los ordenadores de la fortaleza goblin, encuentras unas imágenes fascinantes del mundo de la superficie. Las grabas en un cartucho...")
+)

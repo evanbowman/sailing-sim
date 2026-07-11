@@ -1,0 +1,56 @@
+running in mgba (or similar)...
+iwram used: 12728
+ewram used: 259900
+estimated stack size: 20040
+Verifying BIOS...
+BIOS matches GAMEBOY Advance
+gbp not detected
+enabled optimized waitstates...
+mount flash filesystem...
+flash fs found root...
+flash fs init: begin: 8, end: 9336, gaps: 0
+initializing initializer...
+start application...
+initialized application...
+lisp init...
+export api...
+compiling scripts...
+LISP Diagnostics:
+Bytecode size: 1328
+Globals: 94
+lisp gc sweep...
+LISP mem 1088
+boot took 805720 (~1 seconds)
+lang selection...
+sbr highwater: 10 (72 left)
+sbr highwater: 22 (60 left)
+sbr highwater: 24 (58 left)
+sbr highwater: 26 (56 left)
+invoke scripts/config/room_tab.lisp took 78475
+invoke scripts/config/rooms.lisp took 13395
+invoke scripts/config/damage.lisp took 24824
+invoke scripts/config/timing.lisp took 22562
+invoke scripts/config/setup.lisp took 7363
+LISP mem 1113
+invoke scripts/reset_hooks.lisp took 110414
+invoke scripts/sandbox/new.lisp took 128467
+invoke scripts/config/room_tab.lisp took 57663
+invoke scripts/config/rooms.lisp took 11150
+invoke scripts/config/damage.lisp took 24651
+invoke scripts/config/timing.lisp took 18855
+invoke scripts/config/setup.lisp took 6179
+LISP mem 1170
+invoke scripts/reset_hooks.lisp took 99396
+invoke scripts/challenges/index.lisp took 14270
+invoke scripts/challenges/challenge.lisp took 720
+sbr highwater: 27 (55 left)
+invoke scripts/config/room_tab.lisp took 77122
+invoke scripts/config/rooms.lisp took 13395
+invoke scripts/config/damage.lisp took 24850
+invoke scripts/config/timing.lisp took 27459
+invoke scripts/config/setup.lisp took 7453
+LISP mem 1184
+invoke scripts/reset_hooks.lisp took 101148
+invoke scripts/sandbox/new.lisp took 126884
+wraparound in custom text palette alloc
+1

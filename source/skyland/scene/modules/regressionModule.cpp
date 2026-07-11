@@ -1,0 +1,240 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+#include "regressionModule.hpp"
+#include "ext_workram_data.hpp"
+#include "script/lisp.hpp"
+#include "skyland/scene/selectTutorialScene.hpp"
+#include "skyland/skyland.hpp"
+
+
+
+namespace skyland
+{
+
+
+
+EXT_WORKRAM_DATA s8 test_index = -2;
+
+
+
+static const auto bkg_color = custom_color(0x007cbf);
+static const Text::OptColors text_colors{{custom_color(0xffffff), bkg_color}};
+
+
+
+void skip_crash_report();
+
+
+
+ScenePtr RegressionModule::update(Time delta)
+{
+    skip_crash_report();
+
+    state_bit_store(StateBit::regression, true);
+
+    Character::__reset_ids();
+    rng::critical_state = 5;
+
+    if (test_index == -2) {
+        PLATFORM.screen().schedule_fade(0);
+        PLATFORM.screen().schedule_fade(1, {bkg_color});
+        PLATFORM.screen().clear();
+        Text::print("please wait...", {1, 1}, text_colors);
+        Text::print("running tests...", {1, 3}, text_colors);
+        PLATFORM.screen().display();
+
+        PLATFORM.walk_filesystem([](const char* path, u32 size) {
+            if (starts_with("/scripts/data/sounds/", StringBuffer<128>(path))) {
+                while (*path not_eq '\0') {
+                    ++path;
+                }
+                while (*path not_eq '/') {
+                    --path;
+                }
+                ++path;
+                StringBuffer<80> filename;
+                while (*path not_eq '.' and *path not_eq '\0') {
+                    filename.push_back(*path);
+                    ++path;
+                }
+
+                auto comp = PLATFORM.get_extensions().__test_compare_sound;
+                if (comp and not comp(filename.c_str())) {
+                    PLATFORM.fatal(path);
+                }
+            }
+        });
+
+        lisp::set_var("regr-print", lisp::make_function([](int argc) {
+                          L_EXPECT_ARGC(argc, 3);
+                          L_EXPECT_OP(2, string);
+                          L_EXPECT_OP(1, integer);
+                          L_EXPECT_OP(0, integer);
+                          PLATFORM.screen().clear();
+                          for (int x = 0; x < 30; ++x) {
+                              PLATFORM.set_tile(
+                                  Layer::overlay, x, L_LOAD_INT(0), 0);
+                          }
+                          StringBuffer<30> truncated;
+                          truncated = lisp::get_op(2)->string().value();
+                          Text::print(truncated.c_str(),
+                                      {(u8)L_LOAD_INT(1), (u8)L_LOAD_INT(0)},
+                                      text_colors);
+                          PLATFORM.screen().display();
+                          return L_NIL;
+                      }));
+
+        PLATFORM_EXTENSION(watchdog_off);
+        APP.invoke_script("/scripts/test/unittest.lisp");
+        APP.invoke_script("/scripts/test/apitest.lisp");
+        PLATFORM_EXTENSION(watchdog_on);
+
+        PLATFORM.screen().clear();
+        Text::print("core regression passed!", {1, 1}, text_colors);
+        Text::print("validating async...", {1, 3}, text_colors);
+        PLATFORM.screen().display();
+
+        PLATFORM.sleep(30);
+
+        lisp::set_var(
+            "test-delay", lisp::make_function([](int argc) {
+                L_EXPECT_ARGC(argc, 1);
+                L_EXPECT_RATIONAL(0);
+                auto promise = lisp::make_promise();
+                auto time = L_LOAD_INT(0);
+                // Ok this is an unsafe cast, but the current scene better be the
+                // regression module, or else... how are we in the regression module?
+                ((RegressionModule&)APP.scene())
+                    .async_timers_.emplace_back(promise, time * 1000);
+                return promise;
+            }));
+
+        APP.invoke_script("/scripts/test/async-test.lisp");
+
+        test_index++;
+
+    } else if (test_index == -1) {
+
+        if (async_timers_.size()) {
+            auto& current = async_timers_[async_timers_.size() - 1];
+            current.time_remaining_ -= delta;
+            if (current.time_remaining_ <= 0) {
+                lisp::Protected promise = (lisp::Value*)current.promise_;
+                auto ret = L_INT(resolve_counter_++);
+                async_timers_.pop_back();
+                lisp::resolve_promise(promise, ret);
+                auto result = lisp::get_op0();
+                if (result->type() == lisp::Value::Type::error) {
+                    lisp::DefaultPrinter p;
+                    lisp::format(result, p);
+                    PLATFORM.fatal(
+                        format<256>("async-test: %", p.data_.c_str()));
+                }
+                lisp::pop_op();
+            }
+        }
+
+        if (is_boolean_true(lisp::get_var("async-done"))) {
+            if (auto match = PLATFORM.get_extensions().has_startup_opt) {
+                if (match("--validate-scripts") and not match("--regression")) {
+                    ::exit(EXIT_SUCCESS);
+                }
+            }
+            Character::__reset_ids();
+            test_index++;
+
+            PLATFORM.screen().clear();
+            Text::print("async regression passed!", {1, 1}, text_colors);
+            Text::print("validating tutorials...", {1, 3}, text_colors);
+            PLATFORM.screen().display();
+
+            PLATFORM.sleep(120);
+        }
+
+    } else {
+
+        if (test_index > 0) {
+            APP.invoke_script("/scripts/tutorials/test/common.lisp");
+
+            auto tutorial_list =
+                APP.invoke_script("/scripts/tutorials/tutorials.lisp");
+
+            auto test_num = lisp::get_list(
+                lisp::get_list(tutorial_list, test_index - 1), 2);
+
+            APP.invoke_script(format("/scripts/tutorials/test/%.lisp",
+                                     lisp::to_integer(test_num))
+                                  .c_str());
+        }
+
+        if (test_index == SelectTutorialScene::tutorial_count()) {
+            PLATFORM.fill_overlay(0);
+            PLATFORM.screen().schedule_fade(0);
+            PLATFORM.screen().schedule_fade(1, {bkg_color});
+            PLATFORM.screen().clear();
+            Text::print("all regression passed!", {1, 1}, text_colors);
+            u32 mstack = 0;
+            if (auto s = PLATFORM.get_extensions().get_stack_usage) {
+                mstack = s();
+            }
+            Text::print(format("max stack used %", mstack).c_str(),
+                        {1, 3},
+                        text_colors);
+            u32 ssize = 0;
+            if (auto s = PLATFORM.get_extensions().get_stack_size) {
+                ssize = s();
+            }
+            Text::print(format("(approx. stack size %)", ssize).c_str(),
+                        {1, 5},
+                        text_colors);
+            Text::print("press any button to reset...", {1, 7}, text_colors);
+
+            if (auto match = PLATFORM.get_extensions().has_startup_opt) {
+                if (match("--regression")) {
+                    info("regression success!");
+                    ::exit(EXIT_SUCCESS);
+                }
+            }
+
+            while (1) {
+                PLATFORM.input().poll();
+                PLATFORM_EXTENSION(feed_watchdog);
+
+                if (PLATFORM.input()
+                        .down_transition<Button::action_1,
+                                         Button::action_2,
+                                         Button::down,
+                                         Button::up,
+                                         Button::left,
+                                         Button::right>()) {
+                    PLATFORM_EXTENSION(restart);
+                }
+
+                PLATFORM.screen().clear();
+                PLATFORM.screen().display();
+            }
+        }
+
+        auto ret = make_scene<SelectTutorialScene>();
+        ret->quick_select(test_index++);
+        return ret;
+    }
+
+    return null_scene();
+}
+
+
+
+RegressionModule::Factory RegressionModule::factory_(true);
+
+
+
+} // namespace skyland

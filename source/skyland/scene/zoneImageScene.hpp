@@ -1,0 +1,57 @@
+////////////////////////////////////////////////////////////////////////////////
+//
+// Copyright (c) 2023 Evan Bowman
+//
+// This Source Code Form is subject to the terms of the Mozilla Public License,
+// v. 2.0. If a copy of the MPL was not distributed with this file, You can
+// obtain one at http://mozilla.org/MPL/2.0/. */
+//
+////////////////////////////////////////////////////////////////////////////////
+
+
+#pragma once
+
+
+#include "graphics/overlay.hpp"
+#include "skyland/scene.hpp"
+
+
+
+namespace skyland
+{
+
+
+
+class ZoneImageScene : public Scene
+{
+public:
+    void enter(Scene& prev) override;
+    void exit(Scene& next) override;
+
+
+    ScenePtr update(Time delta) override;
+
+
+    bool reset_nav_path_ = true;
+
+    using BackgroundTask = Optional<Function<16, void()>>;
+    // NOTE: optionally use the zone image viewer to load stuff in the
+    // background.
+    BackgroundTask background_task_;
+
+private:
+    Time timer_ = 0;
+    bool skip_ = false;
+
+    enum class State {
+        fade_in,
+        wait,
+        fade_out,
+    } state_ = State::fade_in;
+
+    Optional<Text> text_;
+};
+
+
+
+} // namespace skyland
