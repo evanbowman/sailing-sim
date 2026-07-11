@@ -140,6 +140,12 @@ inline constexpr auto make_rotation_lut(float v)
 static constexpr const auto rotation_lut = make_rotation_lut(0.f);
 
 
+static Fixnum whole(Fixnum v)
+{
+    return Fixnum::from_integer(
+                                (v + (v < 0.0_fixed ? Fixnum::from_integer(-1) * 0.5_fixed : 0.5_fixed)).as_integer());
+}
+
 
 class SailingSimulatorScene : public Scene
 {
@@ -224,10 +230,17 @@ public:
         Fixnum heel_;
         Fixnum rotation_;
         Fixnum sail_force_;
+        Fixnum boom_angle_ = 0.0_fixed;
+        bool   boom_ready_ = false;
+        bool   last_port_    = false;
+        bool   jibing_       = false;
         u16 hardware_rotation_ = 0;
         u8 wake_timer_;
 
     public:
+
+
+        static constexpr const int no_go = 35;
 
 
         int relative_wind_angle(Fixnum wind_from_deg) const
@@ -244,7 +257,6 @@ public:
         {
             const int rel = relative_wind_angle(wind_from_deg);
 
-            const int no_go = 40;
             if (rel < no_go) {
                 return 0.0_fixed;             // sails luffing, no drive
             }
@@ -255,7 +267,7 @@ public:
             if (rel > 90) {
                 // A boat still runs downwind, just slower than it reaches -- don't let
                 // a dead run collapse to zero.
-                const Fixnum downwind_floor = 0.85_fixed;
+                const Fixnum downwind_floor = 0.9_fixed;
                 if (hump < downwind_floor) hump = downwind_floor;
             }
 
@@ -267,7 +279,11 @@ public:
         {
             const int rel = relative_wind_angle(wind_from_deg);
 
-            if (rel < 40)  return "in irons";
+            if (rel < no_go) {
+                const bool have_way = sail_force_ > 0.3_fixed;   // steerageway threshold
+                return (have_way) ? "tacking" : "in irons";
+            }
+
             if (rel < 60)  return "close hauled";
             if (rel < 80)  return "close reach";
             if (rel < 100) return "beam reach";
@@ -317,6 +333,33 @@ public:
             position_.x += sail_force_ * rotation_lut[rotation_.as_integer()].x;
             position_.y += sail_force_ * rotation_lut[rotation_.as_integer()].y;
 
+            Fixnum boom_target = boom_offset(wind);
+            bool   port_now    = on_port_tack(wind);
+
+            if (!boom_ready_) {
+                boom_angle_ = boom_target;
+                last_port_  = port_now;
+                boom_ready_ = true;
+            } else {
+                // Detect a tack->tack crossing while eased well out == a jibe.
+                if (port_now != last_port_) {
+                    bool far_out = (boom_angle_ > 60.0_fixed) || (boom_angle_ < Fixnum::from_integer(-1) * 60.0_fixed);
+                    if (far_out) jibing_ = true;   // must sheet in before releasing
+                }
+                last_port_ = port_now;
+
+                if (jibing_) {
+                    // Phase 1: haul the boom to center, fast and controlled.
+                    boom_angle_ += (0.0_fixed - boom_angle_) * 0.22_fixed;
+                    if (boom_angle_ > Fixnum::from_integer(-1)*6.0_fixed && boom_angle_ < 6.0_fixed) {
+                        jibing_ = false;           // crossed center; hand back to normal trim
+                    }
+                } else {
+                    // Phase 2 (and all normal trimming): ease toward optimal.
+                    boom_angle_ += (boom_target - boom_angle_) * 0.06_fixed;
+                }
+            }
+
             // if (heel_ < 0.75_fixed) {
             //     heel_ = heel_ + 0.01_fixed;
             // } else {
@@ -332,9 +375,9 @@ public:
         }
 
 
-        void display()
+        void display(Fixnum wind_from_deg)
         {
-            draw_mast();
+            draw_mast(wind_from_deg);
 
             for (int i = 4; i > -1; --i) {
                 draw_slice(i);
@@ -356,8 +399,82 @@ public:
             PLATFORM.screen().draw(spr);
         }
 
-        void draw_mast()
+
+        Fixnum boom_swing(Fixnum wind_from_deg) const
         {
+            const int rel = relative_wind_angle(wind_from_deg);
+            int swing = rel / 2;              // ~22 close-hauled, 45 beam, 90 run
+            const int min_swing = 8;          // never dead-flat on the centerline; looks wrong
+            if (swing < min_swing) swing = min_swing;
+            return Fixnum::from_integer(swing);
+        }
+
+
+        bool on_port_tack(Fixnum wind_from_deg) const
+        {
+            int diff = (rotation_.as_integer() - wind_from_deg.as_integer()) % 360;
+            if (diff < 0) diff += 360;
+            return diff < 180;   // wind coming over one side vs. the other
+        }
+
+
+        Fixnum boom_offset(Fixnum wind_from_deg) const
+        {
+            Fixnum swing = boom_swing(wind_from_deg);
+            return on_port_tack(wind_from_deg) ? (Fixnum::from_integer(-1) * swing) : swing;
+        }
+
+
+        static u16 deg_to_hw(Fixnum deg)
+        {
+            return -1 * ((deg * 0.002777_fixed) * Fixnum::from_integer(65535 / 2)).as_integer()
+                + 65535 / 8;
+        }
+
+
+        static constexpr int HALF_BOOM   = 9;    // box center -> boom end
+        static constexpr int MOUNT_CLEAR = 4;    // push aft to clear the mast pole; tune to taste
+        static constexpr int MAST_FWD    = 10;
+        static constexpr int GOOSE_RAISE = 13;   // 3 = mast foot, 40 = masthead
+
+
+        void draw_boom()
+        {
+            Fixnum a = rotation_ + 180.0_fixed + boom_angle_;   // animated, not boom_offset()
+            int ai = a.as_integer() % 360;
+            if (ai < 0) ai += 360;
+
+            const int hd = rotation_.as_integer();          // heading, for the gooseneck
+
+            // LUT #1: deck center -> gooseneck, now riding up the mast
+            Vec2<Fixnum> goose = position_;
+            goose.x += whole(Fixnum::from_integer(MAST_FWD) * rotation_lut[hd].x);
+            goose.y += whole(Fixnum::from_integer(MAST_FWD) * rotation_lut[hd].y);
+            goose.y -= Fixnum::from_integer(GOOSE_RAISE);
+
+            const int reach = HALF_BOOM + MOUNT_CLEAR;
+            Vec2<Fixnum> center = goose;
+            center.x += whole(Fixnum::from_integer(reach) * rotation_lut[ai].x);
+            center.y += whole(Fixnum::from_integer(reach) * rotation_lut[ai].y);
+
+            Sprite spr;
+            spr.set_size(Sprite::Size::w16_h32);
+            spr.set_texture_index(18);
+
+            auto pos = center;
+            pos.x -= 8.0_fixed;    // box center -> top-left (half of 16)
+            pos.y -= 16.0_fixed;   // box center -> top-left (half of 32)
+            spr.set_position(pos);
+
+            spr.set_rotation(deg_to_hw(Fixnum::from_integer(ai)));
+            PLATFORM.screen().draw(spr);
+        }
+
+
+        void draw_mast(Fixnum wind_from_deg)
+        {
+            draw_boom();
+
             Sprite spr;
             spr.set_size(Sprite::Size::w16_h32);
             spr.set_texture_index(17);
@@ -365,13 +482,16 @@ public:
             pos.x -= 8.0_fixed;
             pos.y -= 16.0_fixed;
             pos.y -= 24.0_fixed;
-            pos.x += 10.0_fixed * rotation_lut[rotation_.as_integer()].x;
-            pos.y += 10.0_fixed * rotation_lut[rotation_.as_integer()].y;
+            pos.x += whole(10.0_fixed * rotation_lut[rotation_.as_integer()].x);
+            pos.y += whole(10.0_fixed * rotation_lut[rotation_.as_integer()].y);
             spr.set_rotation((Fixnum::from_integer(2100) * heel_).as_integer());
             spr.set_position(pos);
             PLATFORM.screen().draw(spr);
         }
     };
+
+
+    static constexpr const auto north_wind = 270.0_fixed;
 
 
     void enter(Scene& prev) override
@@ -382,6 +502,7 @@ public:
         PLATFORM.clear_layer(Layer::map_0);
         PLATFORM.clear_layer(Layer::map_1);
         globals().entity_pools_.create("entity-mem");
+        wind_ = north_wind;
     }
 
 
@@ -393,12 +514,10 @@ public:
 
     ScenePtr update(Time delta) override
     {
-        static const auto north_wind = 270.0_fixed;
-        auto wind = north_wind;
 
         update_entities(milliseconds(17), APP.effects());
 
-        boat_.update(wind);
+        boat_.update(wind_);
         auto view = PLATFORM.screen().get_view();
         auto center = boat_.get_position();
         center.x -= 120.0_fixed;
@@ -409,7 +528,7 @@ public:
         for (int x = 0; x < 30; ++x) {
             PLATFORM.set_tile(Layer::overlay, x, 19, 0);
         }
-        Text::print(boat_.point_of_sail(wind), {0, 19});
+        Text::print(boat_.point_of_sail(wind_), {0, 19});
 
         return null_scene();
     }
@@ -417,7 +536,7 @@ public:
 
     void display() override
     {
-        boat_.display();
+        boat_.display(wind_);
 
         for (auto& effect : APP.effects()) {
             PLATFORM.screen().draw(effect->sprite());
@@ -428,6 +547,7 @@ public:
 
 private:
     Boat boat_;
+    Wind wind_;
 };
 
 
