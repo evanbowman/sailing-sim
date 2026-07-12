@@ -416,7 +416,7 @@ public:
         void update(const Wind& wind)
         {
             // --- Helm: full rudder once there's way on; fades only near stall --------
-            static const Fixnum STEERAGE = 0.25_fixed;   // speed at which the rudder reaches full authority
+            static const Fixnum STEERAGE = 0.4_fixed;   // speed at which the rudder reaches full authority
             Fixnum mag  = sail_force_ < 0.0_fixed ? (0.0_fixed - sail_force_) : sail_force_;
             Fixnum auth = mag / STEERAGE;               // full authority once speed >= STEERAGE
             if (auth > 1.0_fixed) auth = 1.0_fixed;
@@ -436,13 +436,13 @@ public:
                 apply_turn(turn);
             }
 
-            if (button_down<Button::action_1>()) {
-                starboard_cannon();
-            }
+            // if (button_down<Button::action_1>()) {
+            //     starboard_cannon();
+            // }
 
-            if (button_down<Button::action_2>()) {
-                port_cannon();
-            }
+            // if (button_down<Button::action_2>()) {
+            //     port_cannon();
+            // }
 
             update_entities(milliseconds(17), projectiles_);
 
@@ -456,7 +456,6 @@ public:
             static const auto wind_strength = 1.75_fixed;
 
             Fixnum target;
-            bool   luffing = false;
 
             if (depowered_) {
                 target = 0.0_fixed;
@@ -467,15 +466,13 @@ public:
                 } else {
                     // No-go zone: sails luff. Head to wind, the rig pushes us backward.
                     // Strongest dead-upwind (rel==0), fading to zero at the no-go edge.
-                    luffing = true;
                     const int rel  = relative_wind_angle(wind);            // 0 == dead upwind
                     Fixnum     frac = Fixnum::from_integer(no_go - rel) * 0.0285_fixed; // /35
                     target = 0.0_fixed - (0.35_fixed * frac);              // small negative
                 }
             }
 
-            // Luffing sails stall you fast; drawing sails build/coast slowly (feel unchanged).
-            const Fixnum K = luffing ? 0.03_fixed : 0.01_fixed;
+            const Fixnum K = 0.01_fixed;
             sail_force_ += (target - sail_force_) * K;
 
             position_ = position_ + sail_force_vector() + drift_;
