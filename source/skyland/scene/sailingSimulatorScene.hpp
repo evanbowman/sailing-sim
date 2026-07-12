@@ -266,7 +266,7 @@ public:
         bool   boom_ready_ = false;
         bool   last_port_    = false;
         bool   jibing_       = false;
-        bool depowered_      = false;
+        bool depowered_      = true;
         u16 hardware_rotation_ = 0;
         u8 wake_timer_;
 
@@ -357,7 +357,6 @@ public:
             sail_texture_2_(PLATFORM.make_dynamic_texture())
         {
             position_ = {120.0_fixed, 80.0_fixed};
-            sail_force_ = 1.0_fixed;
         }
 
 
@@ -734,6 +733,7 @@ public:
         PLATFORM.clear_layer(Layer::map_1);
         globals().entity_pools_.create("entity-mem");
         wind_ = north_wind;
+        Text::print("press L to power your sails!", {1, 0});
     }
 
 
@@ -745,6 +745,13 @@ public:
 
     ScenePtr update(Time delta) override
     {
+        if (button_down<Button::alt_1>()) {
+            if (not sail_power_noted_) {
+                PLATFORM.fill_overlay(0);
+                sail_power_noted_ = true;
+            }
+        }
+
 
         update_entities(milliseconds(17), APP.effects());
 
@@ -762,6 +769,14 @@ public:
         if (auto str = boat_.fmt_point_of_sail(wind_)) {
             Text::print(str, {0, 19});
         }
+
+        if (button_down<Button::alt_2>()) {
+            wind_ = wind_ + 45.0_fixed;
+            if (wind_ > 360.0_fixed) {
+                wind_ = wind_ - 360.0_fixed;
+            }
+        }
+
 
         return null_scene();
     }
@@ -781,6 +796,7 @@ public:
 private:
     Boat boat_;
     Wind wind_;
+    bool sail_power_noted_ = false;
 };
 
 
