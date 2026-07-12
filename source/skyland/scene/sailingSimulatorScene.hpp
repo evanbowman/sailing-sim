@@ -226,6 +226,8 @@ public:
     class Boat
     {
     private:
+        Optional<Platform::DynamicTexturePtr> sail_texture_1_;
+        Optional<Platform::DynamicTexturePtr> sail_texture_2_;
         Vec2<Fixnum> position_;
         Fixnum heel_;
         Fixnum rotation_;
@@ -298,7 +300,9 @@ public:
         }
 
 
-        Boat()
+        Boat() :
+            sail_texture_1_(PLATFORM.make_dynamic_texture()),
+            sail_texture_2_(PLATFORM.make_dynamic_texture())
         {
             position_ = {120.0_fixed, 80.0_fixed};
             sail_force_ = 1.0_fixed;
@@ -437,6 +441,59 @@ public:
         static constexpr int MAST_FWD    = 10;
         static constexpr int GOOSE_RAISE = 13;   // 3 = mast foot, 40 = masthead
 
+        void draw_sail()
+        {
+            if (!sail_texture_1_ || !sail_texture_2_) return;
+
+            // Same screen bearing the boom uses, folded into the baked -90..90 half.
+            int b = (rotation_ + 180.0_fixed + boom_angle_).as_integer() % 360;
+            if (b < 0)   b += 360;
+            if (b > 180) b -= 360;
+            bool flip = false;
+            if (b > 90)       { b = 180 - b;  flip = true; }
+            else if (b < -90) { b = -180 - b; flip = true; }
+            int frame = (b + 90) / 2;
+            if (frame < 0)  frame = 0;
+            if (frame > 90) frame = 90;
+
+            const int base_index = 64;
+            const int base_block = base_index + frame * 2;   // block number of the upper cell
+            const int upper = 2 * base_block;                // -> 16x32 tile units
+            const int lower = upper + 2;                      // next 32x32 block = +2 tiles, not +1
+
+            const int hd = rotation_.as_integer();
+            Vec2<Fixnum> goose = position_;
+            goose.x += whole(Fixnum::from_integer(MAST_FWD) * rotation_lut[hd].x);
+            goose.y += whole(Fixnum::from_integer(MAST_FWD) * rotation_lut[hd].y);
+            goose.y -= Fixnum::from_integer(GOOSE_RAISE + 1);
+
+            const Fixnum tack_x = Fixnum::from_integer(flip ? 31 : 1);
+
+            auto sail_color = custom_color(0xfceac2);
+
+            // LOWER block: its row 0 at tack_x IS the tack -> land that on the gooseneck.
+            (*sail_texture_1_)->remap(lower);
+            Sprite lo;
+            lo.set_mix({sail_color, 255});
+            lo.set_size(Sprite::Size::w32_h32);
+            lo.set_flip({flip, 0});
+            lo.set_texture_index((*sail_texture_1_)->mapping_index());
+            Vec2<Fixnum> lo_pos = goose;
+            lo_pos.x -= tack_x;
+            lo.set_position(lo_pos);
+            PLATFORM.screen().draw(lo);
+
+            (*sail_texture_2_)->remap(upper);
+            Sprite hi;
+            hi.set_mix({sail_color, 255});
+            hi.set_size(Sprite::Size::w32_h32);
+            hi.set_flip({flip, 0});
+            hi.set_texture_index((*sail_texture_2_)->mapping_index());
+            Vec2<Fixnum> hi_pos = lo_pos;
+            hi_pos.y -= 32.0_fixed;
+            hi.set_position(hi_pos);
+            PLATFORM.screen().draw(hi);
+        }
 
         void draw_boom()
         {
@@ -473,6 +530,7 @@ public:
 
         void draw_mast(Fixnum wind_from_deg)
         {
+            draw_sail();
             draw_boom();
 
             Sprite spr;

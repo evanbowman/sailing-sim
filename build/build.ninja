@@ -3156,7 +3156,7 @@ build SkylandEngine: CXX_EXECUTABLE_LINKER__SkylandEngine_ CMakeFiles/SkylandEng
   LINK_FLAGS = -mthumb -mthumb-interwork -Wl,--trace-symbol=__getreent -Wl,--trace-symbol=_impure_data -Wl,-Map,SkylandEngine.elf.map -specs=gba.specs
   LINK_LIBRARIES = libLIBGBA.a  libQR.a  libARM_ROUTINES.a  libLISP.a  libFASTPATH.a
   OBJECT_DIR = CMakeFiles/SkylandEngine.dir
-  POST_BUILD = cd /Users/evanbowman/gba/skyland/build && /opt/devkitpro/devkitARM/bin/arm-none-eabi-objcopy -O binary SkylandEngine SkylandEngine.gba && /opt/devkitpro/tools/bin/gbafix -tSKYLAND -cSKLD -r0 -mEB SkylandEngine.gba
+  POST_BUILD = cd /Users/evanbowman/gba/skyland/build && /opt/devkitpro/devkitARM/bin/arm-none-eabi-objcopy -O binary SkylandEngine SkylandEngine.gba && /opt/devkitpro/tools/bin/gbafix -tNWIND -cSKLD -r0 -mEB SkylandEngine.gba
   PRE_LINK = :
   TARGET_FILE = SkylandEngine
   TARGET_PDB = SkylandEngine.dbg

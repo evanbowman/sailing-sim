@@ -3,13 +3,13 @@
 
 //======================================================================
 //
-//	spritesheet_sailboat, 3488x32@4, 
+//	spritesheet_sailboat, 8096x32@4, 
 //	Transparent color : FF,00,FF
 //	+ palette 16 entries, not compressed
-//	+ 1744 tiles Metatiled by 2x4 not compressed
-//	Total size: 32 + 55808 = 55840
+//	+ 4048 tiles Metatiled by 2x4 not compressed
+//	Total size: 32 + 129536 = 129568
 //
-//	Time-stamp: 2026-07-11, 17:51:07
+//	Time-stamp: 2026-07-11, 19:39:30
 //	Exported by Cearn's GBA Image Transmogrifier, v0.9.2
 //	( http://www.coranac.com/projects/#grit )
 //
@@ -18,8 +18,8 @@
 #ifndef GRIT_SPRITESHEET_SAILBOAT_H
 #define GRIT_SPRITESHEET_SAILBOAT_H
 
-#define spritesheet_sailboatTilesLen 55808
-extern const unsigned int spritesheet_sailboatTiles[13952];
+#define spritesheet_sailboatTilesLen 129536
+extern const unsigned int spritesheet_sailboatTiles[32384];
 
 #define spritesheet_sailboatPalLen 32
 extern const unsigned short spritesheet_sailboatPal[16];

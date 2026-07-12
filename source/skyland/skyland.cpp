@@ -786,6 +786,7 @@ lisp::Value* App::invoke_script(
     InvokeScriptConfig conf,
     Optional<Function<4 * sizeof(void*), void(lisp::Value& err)>> err_handler)
 {
+    return L_NIL;
     auto on_err = [path](lisp::Value& err) {
         lisp::DefaultPrinter p;
         lisp::format(&err, p);

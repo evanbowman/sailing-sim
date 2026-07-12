@@ -915,7 +915,7 @@ if(NINTENDO_DS)
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     COMMENT "building cartridge"
     COMMAND ${DEVKITARM}/bin/arm-none-eabi-objcopy -O binary ${EXECUTABLE_NAME} SkylandEngine.arm9
-    COMMAND ${DEVKITPRO}/tools/bin/ndstool -c Skyland.nds -9 SkylandEngine.arm9 -g YKWE 01 SKYLAND 0)
+    COMMAND ${DEVKITPRO}/tools/bin/ndstool -c Skyland.nds -9 SkylandEngine.arm9 -g YKWE 01 WIND 0)
 
 
 elseif(GAMEBOY_ADVANCE)
@@ -1023,7 +1023,7 @@ endif()
   add_custom_command(TARGET ${EXECUTABLE_NAME} POST_BUILD
     COMMENT "building cartridge"
     COMMAND ${DEVKITARM}/bin/arm-none-eabi-objcopy -O binary ${EXECUTABLE_NAME} ${EXECUTABLE_NAME}.gba
-    COMMAND ${DEVKITPRO}/tools/bin/gbafix -tSKYLAND -cSKLD -r0 -mEB ${EXECUTABLE_NAME}.gba)
+    COMMAND ${DEVKITPRO}/tools/bin/gbafix -tNWIND -cSKLD -r0 -mEB ${EXECUTABLE_NAME}.gba)
 
 elseif(APPLE)
 

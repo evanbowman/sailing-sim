@@ -1,6 +1,0 @@
-'(("Standard" . nil)
-  ("Soft Sepia" . "sepia.dat")
-  ("Ukiyo-e" . "ukiyo_e.dat")
-  ("Megadrive" . "megadrive.dat")
-  ("November" . "november.dat")
-  ("Non-Backlit Screen" . "agb_screen.dat"))

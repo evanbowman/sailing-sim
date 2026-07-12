@@ -3629,13 +3629,13 @@ int gc()
     }
     gc_running = true;
 
-    l_foreach(get_var("--autoload-symbols"), [](Value* sym) {
-        if (sym->type() == Value::Type::symbol) {
-            if (globals_tree_find(sym)) {
-                globals_tree_erase(sym);
-            }
-        }
-    });
+    // l_foreach(get_var("--autoload-symbols"), [](Value* sym) {
+    //     if (sym->type() == Value::Type::symbol) {
+    //         if (globals_tree_find(sym)) {
+    //             globals_tree_erase(sym);
+    //         }
+    //     }
+    // });
 
     gc_mark();
     int collect_count = gc_sweep();

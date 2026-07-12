@@ -1,3 +1,0 @@
-;;;
-;;; construction_tricks.lisp
-;;;

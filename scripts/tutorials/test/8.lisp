@@ -1,3 +1,0 @@
-;;;
-;;; advanced_structures.lisp
-;;;
