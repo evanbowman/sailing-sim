@@ -589,6 +589,7 @@ public:
         }
 
         if (not flash_filesystem::file_exists(lang_file) or clean_boot_) {
+            return make_scene<SailingSimulatorScene>();
             info("lang selection...");
             if (PLATFORM.device_name() == "PC") {
                 auto next = make_scene<ControllerSetupModule>();

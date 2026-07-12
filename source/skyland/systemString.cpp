@@ -44,20 +44,20 @@ SystemStringBuffer loadstr(SystemString str)
 {
     auto result = allocate_fast<StringBuffer<1900>>("system-string");
 
-    if (lang_file_changed) {
-        auto path = lang_file;
-        auto index = lang_file;
-        path += ".idf";
-        index += ".idx";
-        idf_file = PLATFORM.load_file_contents("strings", path.c_str());
-        idx_file = PLATFORM.load_file_contents("strings", index.c_str());
+    // if (lang_file_changed) {
+    //     auto path = lang_file;
+    //     auto index = lang_file;
+    //     path += ".idf";
+    //     index += ".idx";
+    //     idf_file = PLATFORM.load_file_contents("strings", path.c_str());
+    //     idx_file = PLATFORM.load_file_contents("strings", index.c_str());
 
-        if (not idf_file or not idx_file) {
-            PLATFORM.fatal("system strings file missing!");
-        }
+    //     if (not idf_file or not idx_file) {
+    //         PLATFORM.fatal("system strings file missing!");
+    //     }
 
-        lang_file_changed = false;
-    }
+    //     lang_file_changed = false;
+    // }
 
     auto data = idf_file;
     auto idx = idx_file;

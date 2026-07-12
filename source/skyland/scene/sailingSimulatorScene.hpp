@@ -152,6 +152,34 @@ class SailingSimulatorScene : public Scene
 public:
 
 
+    class Cannonball : public Entity
+    {
+    public:
+        Cannonball(Vec2<Fixnum> pos, Vec2<Fixnum> vector) : Entity({}), vector_(vector)
+        {
+            sprite_.set_size(Sprite::Size::w8_h8);
+            sprite_.set_tidx_8x8(34, 0);
+            sprite_.set_position(pos);
+            sprite_.set_origin({4, 4});
+        }
+
+        void update(Time delta) override
+        {
+            timeout_ -= delta;
+            if (timeout_ <= 0) {
+                kill();
+            }
+            auto pos = sprite_.get_position();
+            pos = pos + vector_;
+            sprite_.set_position(pos);
+        }
+
+    private:
+        Vec2<Fixnum> vector_;
+        Time timeout_ = milliseconds(600);
+    };
+
+
     class WakeRipple : public Entity
     {
     public:
@@ -226,6 +254,7 @@ public:
     class Boat
     {
     private:
+        EntityList<Entity> projectiles_;
         Optional<Platform::DynamicTexturePtr> sail_texture_1_;
         Optional<Platform::DynamicTexturePtr> sail_texture_2_;
         Vec2<Fixnum> position_;
@@ -236,6 +265,7 @@ public:
         bool   boom_ready_ = false;
         bool   last_port_    = false;
         bool   jibing_       = false;
+        bool depowered_      = false;
         u16 hardware_rotation_ = 0;
         u8 wake_timer_;
 
@@ -269,7 +299,7 @@ public:
             if (rel > 90) {
                 // A boat still runs downwind, just slower than it reaches -- don't let
                 // a dead run collapse to zero.
-                const Fixnum downwind_floor = 0.9_fixed;
+                const Fixnum downwind_floor = 0.95_fixed;
                 if (hump < downwind_floor) hump = downwind_floor;
             }
 
@@ -277,9 +307,13 @@ public:
         }
 
 
-        const char* point_of_sail(Fixnum wind_from_deg) const
+        const char* fmt_point_of_sail(Fixnum wind_from_deg) const
         {
             const int rel = relative_wind_angle(wind_from_deg);
+
+            if (depowered_) {
+                return "depowered";
+            }
 
             if (rel < no_go) {
                 const bool have_way = sail_force_ > 0.3_fixed;   // steerageway threshold
@@ -309,6 +343,49 @@ public:
         }
 
 
+        Vec2<Fixnum> sail_force_vector() const
+        {
+            return {
+                sail_force_ * rotation_lut[rotation_.as_integer()].x,
+                sail_force_ * rotation_lut[rotation_.as_integer()].y
+            };
+        }
+
+
+        void starboard_cannon()
+        {
+            auto pos = position_;
+            auto dir = rotation_.as_integer();
+            dir += 90;
+            dir %= 360;
+            pos.x += 4.0_fixed * rotation_lut[dir].x;
+            pos.y += 4.0_fixed * rotation_lut[dir].y;
+            auto vector = 3.0_fixed * Vec2<Fixnum>{rotation_lut[dir].x,
+                                                   rotation_lut[dir].y};
+            vector = vector + sail_force_vector();
+            if (auto e = APP.alloc_entity<Cannonball>(pos, vector)) {
+                APP.effects().push(std::move(e));
+            }
+        }
+
+
+        void port_cannon()
+        {
+            auto pos = position_;
+            auto dir = rotation_.as_integer();
+            dir += 270;
+            dir %= 360;
+            pos.x += 4.0_fixed * rotation_lut[dir].x;
+            pos.y += 4.0_fixed * rotation_lut[dir].y;
+            auto vector = 3.0_fixed * Vec2<Fixnum>{rotation_lut[dir].x,
+                                                   rotation_lut[dir].y};
+            vector = vector + sail_force_vector();
+            if (auto e = APP.alloc_entity<Cannonball>(pos, vector)) {
+                APP.effects().push(std::move(e));
+            }
+        }
+
+
         void update(const Wind& wind)
         {
             if (PLATFORM.input().pressed<Button::left>()) {
@@ -323,22 +400,45 @@ public:
                 }
             }
 
+            if (button_down<Button::action_1>()) {
+                starboard_cannon();
+            }
+
+            if (button_down<Button::action_2>()) {
+                port_cannon();
+            }
+
+            update_entities(milliseconds(17), projectiles_);
+
+            if (button_down<Button::alt_1>()) {
+                depowered_ = not depowered_;
+            }
+
             hardware_rotation_ = -1 * ((rotation_ * 0.002777_fixed) * Fixnum::from_integer(65535 / 2)).as_integer() + 65535 / 8;
 
 
-            static const auto wind_strength = 1.5_fixed;
-            Fixnum target = sail_efficiency(wind) * wind_strength;
+            static const auto wind_strength = 1.75_fixed;
 
             // Smaller K == heavier boat / more inertia. At ~60 fps, 0.03 gives a boat
             // that takes roughly a second to spin up or coast down.
-            const Fixnum K = 0.01_fixed;
-            sail_force_ += (target - sail_force_) * K;
+            const Fixnum K = 0.008_fixed;
+            Fixnum target = depowered_ ? 0.0_fixed
+                : (sail_efficiency(wind) * wind_strength);
+            sail_force_ += (target - sail_force_) * K;   // unchanged; coasts to a stop
 
-            position_.x += sail_force_ * rotation_lut[rotation_.as_integer()].x;
-            position_.y += sail_force_ * rotation_lut[rotation_.as_integer()].y;
+            position_ = position_ + sail_force_vector();
 
-            Fixnum boom_target = boom_offset(wind);
+            Fixnum boom_target;
             bool   port_now    = on_port_tack(wind);
+
+            if (depowered_) {
+                const int rel = relative_wind_angle(wind);
+                const int mag = (rel <= 90) ? rel : (180 - rel);   // triangle wave
+                boom_target = on_port_tack(wind) ? Fixnum::from_integer(-mag)   // same
+                    : Fixnum::from_integer(mag);   // leeward sign
+            } else {
+                boom_target = boom_offset(wind);
+            }
 
             if (!boom_ready_) {
                 boom_angle_ = boom_target;
@@ -383,14 +483,29 @@ public:
         {
             draw_mast(wind_from_deg);
 
+            for (auto& proj : projectiles_) {
+                PLATFORM.screen().draw(proj->sprite());
+            }
+
             for (int i = 4; i > -1; --i) {
                 draw_slice(i);
             }
         }
 
+        Vec2<Fixnum> center() const
+        {
+            auto pos = position_;
+            pos.x -= 8.0_fixed;
+            pos.y -= 16.0_fixed;
+            return pos;
+        }
+
         void draw_slice(int n)
         {
             Sprite spr;
+            if (n < 2) {
+                spr.set_priority(2);
+            }
             spr.set_size(Sprite::Size::w16_h32);
             spr.set_texture_index(12 + n);
             auto pos = position_;
@@ -586,7 +701,9 @@ public:
         for (int x = 0; x < 30; ++x) {
             PLATFORM.set_tile(Layer::overlay, x, 19, 0);
         }
-        Text::print(boat_.point_of_sail(wind_), {0, 19});
+        if (auto str = boat_.fmt_point_of_sail(wind_)) {
+            Text::print(str, {0, 19});
+        }
 
         return null_scene();
     }
