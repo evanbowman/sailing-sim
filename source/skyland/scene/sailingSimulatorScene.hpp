@@ -258,6 +258,7 @@ public:
         Optional<Platform::DynamicTexturePtr> sail_texture_1_;
         Optional<Platform::DynamicTexturePtr> sail_texture_2_;
         Vec2<Fixnum> position_;
+        Vec2<Fixnum> drift_ = {}; // NOTE: recoil, impacts, knockback, etc.
         Fixnum heel_;
         Fixnum rotation_;
         Fixnum sail_force_;
@@ -273,6 +274,18 @@ public:
 
 
         static constexpr const int no_go = 35;
+
+
+        void apply_impulse(const Vec2<Fixnum>& impulse)
+        {
+            drift_ = drift_ + impulse;
+        }
+
+
+        Vec2<Fixnum> velocity() const
+        {
+            return sail_force_vector() + drift_;
+        }
 
 
         int relative_wind_angle(Fixnum wind_from_deg) const
@@ -296,10 +309,15 @@ public:
             // sin(rel): ~0.71 close-hauled, 1.0 on the beam, back toward 0 at a run.
             Fixnum hump = rotation_lut[rel].y;
 
+            if (rel <= 90) {
+                const Fixnum upwind_floor = 0.7_fixed;
+                if (hump < upwind_floor) hump = upwind_floor;
+            }
+
             if (rel > 90) {
                 // A boat still runs downwind, just slower than it reaches -- don't let
                 // a dead run collapse to zero.
-                const Fixnum downwind_floor = 0.95_fixed;
+                const Fixnum downwind_floor = 0.8_fixed;
                 if (hump < downwind_floor) hump = downwind_floor;
             }
 
@@ -360,12 +378,16 @@ public:
             dir %= 360;
             pos.x += 4.0_fixed * rotation_lut[dir].x;
             pos.y += 4.0_fixed * rotation_lut[dir].y;
-            auto vector = 3.0_fixed * Vec2<Fixnum>{rotation_lut[dir].x,
-                                                   rotation_lut[dir].y};
-            vector = vector + sail_force_vector();
+            auto vector = 3.0_fixed * Vec2<Fixnum>{rotation_lut[dir].x, rotation_lut[dir].y};
+            vector = vector + velocity();          // was sail_force_vector(); now carries drift too
             if (auto e = APP.alloc_entity<Cannonball>(pos, vector)) {
                 APP.effects().push(std::move(e));
             }
+
+            const int recoil_dir = (dir + 180) % 360;
+            const Fixnum recoil  = 0.4_fixed;
+            apply_impulse(recoil * Vec2<Fixnum>{rotation_lut[recoil_dir].x,
+                                                rotation_lut[recoil_dir].y});
         }
 
 
@@ -383,21 +405,35 @@ public:
             if (auto e = APP.alloc_entity<Cannonball>(pos, vector)) {
                 APP.effects().push(std::move(e));
             }
+
+            const int recoil_dir = (dir + 180) % 360;
+            const Fixnum recoil  = 0.4_fixed;
+            apply_impulse(recoil * Vec2<Fixnum>{rotation_lut[recoil_dir].x,
+                                                rotation_lut[recoil_dir].y});
         }
 
 
         void update(const Wind& wind)
         {
+            // --- Helm: full rudder once there's way on; fades only near stall --------
+            static const Fixnum STEERAGE = 0.25_fixed;   // speed at which the rudder reaches full authority
+            Fixnum mag  = sail_force_ < 0.0_fixed ? (0.0_fixed - sail_force_) : sail_force_;
+            Fixnum auth = mag / STEERAGE;               // full authority once speed >= STEERAGE
+            if (auth > 1.0_fixed) auth = 1.0_fixed;
+
+            Fixnum turn = 2.0_fixed * auth;
+            if (sail_force_ < 0.0_fixed) turn = 0.0_fixed - turn;   // sternway reverses the helm
+
+            auto apply_turn = [&](Fixnum d) {
+                rotation_ += d;
+                while (rotation_ <  0.0_fixed)   rotation_ += 360.0_fixed;
+                while (rotation_ >= 360.0_fixed) rotation_ -= 360.0_fixed;
+            };
+
             if (PLATFORM.input().pressed<Button::left>()) {
-                rotation_ -= 2.0_fixed;
-                if (rotation_ < 0.0_fixed) {
-                    rotation_ = 359.0_fixed;
-                }
+                apply_turn(0.0_fixed - turn);
             } else if (PLATFORM.input().pressed<Button::right>()) {
-                rotation_ += 2.0_fixed;
-                if (rotation_ > 359.0_fixed) {
-                    rotation_ = 0.0_fixed;
-                }
+                apply_turn(turn);
             }
 
             if (button_down<Button::action_1>()) {
@@ -419,14 +455,39 @@ public:
 
             static const auto wind_strength = 1.75_fixed;
 
-            // Smaller K == heavier boat / more inertia. At ~60 fps, 0.03 gives a boat
-            // that takes roughly a second to spin up or coast down.
-            const Fixnum K = 0.008_fixed;
-            Fixnum target = depowered_ ? 0.0_fixed
-                : (sail_efficiency(wind) * wind_strength);
-            sail_force_ += (target - sail_force_) * K;   // unchanged; coasts to a stop
+            Fixnum target;
+            bool   luffing = false;
 
-            position_ = position_ + sail_force_vector();
+            if (depowered_) {
+                target = 0.0_fixed;
+            } else {
+                const Fixnum drive = sail_efficiency(wind) * wind_strength;
+                if (drive > 0.0_fixed) {
+                    target = drive;                        // sails drawing: normal drive
+                } else {
+                    // No-go zone: sails luff. Head to wind, the rig pushes us backward.
+                    // Strongest dead-upwind (rel==0), fading to zero at the no-go edge.
+                    luffing = true;
+                    const int rel  = relative_wind_angle(wind);            // 0 == dead upwind
+                    Fixnum     frac = Fixnum::from_integer(no_go - rel) * 0.0285_fixed; // /35
+                    target = 0.0_fixed - (0.35_fixed * frac);              // small negative
+                }
+            }
+
+            // Luffing sails stall you fast; drawing sails build/coast slowly (feel unchanged).
+            const Fixnum K = luffing ? 0.03_fixed : 0.01_fixed;
+            sail_force_ += (target - sail_force_) * K;
+
+            position_ = position_ + sail_force_vector() + drift_;
+            // Bleed off impulses. The sail term above is untouched, so with no
+            // impulses drift_ stays {} and behavior is byte-for-byte the current model.
+            const Fixnum drag = 0.90_fixed;
+            const Fixnum eps  = 0.05_fixed;
+            drift_ = drag * drift_;
+            if (drift_.x < eps && drift_.x > eps * Fixnum::from_integer(-1) &&
+                drift_.y < eps && drift_.y > eps * Fixnum::from_integer(-1)) {
+                drift_ = {}; // snap to zero
+            }
 
             Fixnum boom_target;
             bool   port_now    = on_port_tack(wind);

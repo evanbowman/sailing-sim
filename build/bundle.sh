@@ -5,7 +5,7 @@
 # NOTE: this isn't really necessary, just helpful when tracking down bugs in
 # release builds.
 git rev-parse --short HEAD > ../strings/commit_hash.txt
-cp SkylandEngine Skyland.elf # (for mesen profiler)
+cp SkylandEngine north_wind.elf # (for mesen profiler)
 
 # Compile lisp bytecode packages using the desktop build, if available.
 SKYLAND_BIN=""
@@ -32,4 +32,4 @@ else
 fi
 
 python3 ../tools/encode_files.py
-cat SkylandEngine.gba fs.bin > Skyland.gba
+cat SkylandEngine.gba fs.bin > north_wind.gba
